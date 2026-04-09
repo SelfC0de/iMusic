@@ -265,6 +265,13 @@ struct SearchView: View {
     private var tracksList: some View {
         ScrollView {
             LazyVStack(spacing: 0) {
+                // Inline mini-player at top of list when playing (фото 2)
+                if let current = player.currentTrack {
+                    InlinePlayerCard()
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 8)
+                }
+
                 ForEach(Array(vm.tracks.enumerated()), id: \.element.id) { idx, track in
                     TrackRow(
                         track: track,

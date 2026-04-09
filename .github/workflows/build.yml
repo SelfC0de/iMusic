@@ -38,10 +38,9 @@ jobs:
         run: |
           APP_PATH=$(find build/DerivedData -name "iMusic.app" -type d | head -1)
           echo "App: $APP_PATH"
-
           ICON_SRC="iMusic/Assets.xcassets/AppIcon.appiconset"
 
-          # Copy PNG icons directly into the .app bundle root
+          # Copy all sizes into .app root with iOS-standard names
           cp "$ICON_SRC/icon_120.png"  "$APP_PATH/AppIcon60x60@2x.png"
           cp "$ICON_SRC/icon_180.png"  "$APP_PATH/AppIcon60x60@3x.png"
           cp "$ICON_SRC/icon_80.png"   "$APP_PATH/AppIcon40x40@2x.png"
@@ -52,7 +51,7 @@ jobs:
           cp "$ICON_SRC/icon_60.png"   "$APP_PATH/AppIcon20x20@3x.png"
           cp "$ICON_SRC/icon_1024.png" "$APP_PATH/AppIcon1024x1024.png"
 
-          # Patch Info.plist inside .app to reference PNG icons directly
+          # Patch Info.plist inside .app
           PLIST="$APP_PATH/Info.plist"
           /usr/libexec/PlistBuddy -c "Delete :CFBundleIcons" "$PLIST" 2>/dev/null || true
           /usr/libexec/PlistBuddy -c "Add :CFBundleIcons dict" "$PLIST"
@@ -62,7 +61,7 @@ jobs:
           /usr/libexec/PlistBuddy -c "Add :CFBundleIcons:CFBundlePrimaryIcon:CFBundleIconName string AppIcon" "$PLIST"
           /usr/libexec/PlistBuddy -c "Add :CFBundleIcons:CFBundlePrimaryIcon:UIPrerenderedIcon bool false" "$PLIST"
 
-          echo "Icons injected:"
+          echo "Icons in .app:"
           ls "$APP_PATH"/AppIcon*.png
 
       - name: Package IPA
@@ -71,7 +70,12 @@ jobs:
           mkdir -p Payload
           cp -r "$APP_PATH" Payload/iMusic.app
           zip -r iMusic.ipa Payload
-          rm -rf Payload
+
+          # iTunesArtwork — used by Sideloadly and iTunes to show icon preview
+          # Must be in IPA root, no extension, PNG format
+          cp "iMusic/Assets.xcassets/AppIcon.appiconset/icon_1024.png" iTunesArtwork
+          zip iMusic.ipa iTunesArtwork
+          rm -rf Payload iTunesArtwork
 
       - name: Release
         uses: softprops/action-gh-release@v2

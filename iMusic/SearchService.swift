@@ -10,6 +10,7 @@ final class SearchService {
     private let ep2 = "https://muz.zvukofon.com"
     private let ep3 = "https://ruo.morsmusic.org"
     private let ep4 = "https://box.hitplayer.ru"
+    private let ep5 = "https://ru.monfons.com"
     private let pageSize = 48
 
     private let ua = "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1"
@@ -20,12 +21,13 @@ final class SearchService {
         async let r2 = searchSource2(query: query, page: page)
         async let r3 = searchSource3(query: query, page: page)
         async let r4 = searchSource4(query: query, page: page)
+        async let r5 = searchSource5(query: query, page: page)
 
-        let (t1, t2, t3, t4) = await (r1, r2, r3, r4)
+        let (t1, t2, t3, t4, t5) = await (r1, r2, r3, r4, r5)
 
         var merged: [Track] = []
         var seen = Set<String>()
-        let all = [t1, t2, t3, t4]
+        let all = [t1, t2, t3, t4, t5]
         let maxCount = all.map(\.count).max() ?? 0
         for i in 0..<maxCount {
             for src in all {
@@ -73,6 +75,12 @@ final class SearchService {
             : "\(ep4)/?s=\(query.urlEncoded)&p=\(page + 1)"
         guard let html = await fetchHTML(urlStr) else { return [] }
         return parseSource4(html)
+    }
+
+        func searchSource5(query: String, page: Int) async -> [Track] {
+        let urlStr = "\(ep5)/search/\(query.urlEncoded)"
+        guard let html = await fetchHTML(urlStr) else { return [] }
+        return parseSource5(html)
     }
 
         // MARK: – HTTP
@@ -407,6 +415,69 @@ final class SearchService {
             streamURL: dlURL,
             downloadURL: dlURL,
             source: .source4
+        )
+    }
+
+        // MARK: – Parser Source5 (monfons)
+
+    private func parseSource5(_ html: String) -> [Track] {
+        var tracks: [Track] = []
+        guard html.contains("top-tracks__list muslist") else { return [] }
+        var pos = html.startIndex
+        let pattern = #"<div[^>]*class="[^"]*top-tracks__item[^"]*"[^>]*>([\s\S]*?)</div>\s*</div>\s*</div>"#
+        while let range = html.range(of: pattern, options: .regularExpression, range: pos..<html.endIndex) {
+            let block = String(html[range])
+            if let t = parseItem5(block) { tracks.append(t) }
+            pos = range.upperBound
+            if tracks.count >= 40 { break }
+        }
+        return tracks
+    }
+
+    private func parseItem5(_ block: String) -> Track? {
+        var title = ""
+        var artist = ""
+        var cover = ""
+        var dlURL = ""
+        var duration = "0:00"
+
+        // Download link: href="/dl/...mp3"
+        if let v = block.firstCapture(pattern: #"href="(/dl/[^"]+\.mp3)""#) {
+            let cleaned = v.cleanMp3Suffix
+            dlURL = "\(ep5)\(cleaned)"
+        }
+        guard !dlURL.isEmpty else { return nil }
+
+        // Title
+        if let v = block.firstCapture(pattern: #"<span[^>]*class="top-tracks__track"[^>]*>([^<]+)</span>"#) {
+            title = v.trimmed
+        }
+
+        // Artist
+        if let v = block.firstCapture(pattern: #"<[^>]*class="top-tracks__artist"[^>]*>([^<]+)</[^>]*>"#) {
+            artist = v.trimmed
+        }
+
+        // Cover: background-image: url('/covers/...')
+        if let v = block.firstCapture(pattern: #"background-image:\s*url\('(/[^']+)'\)"#) {
+            cover = "\(ep5)\(v)"
+        }
+
+        // Duration
+        if let v = block.firstCapture(pattern: #"<div[^>]*class="top-tracks__fulltime"[^>]*>([\d:]+)</div>"#) {
+            duration = v
+        }
+
+        let id = "s5_\(dlURL.stableHash)"
+        return Track(
+            id: id,
+            title: title.emptyFallback,
+            artist: artist.emptyFallback,
+            duration: duration,
+            coverURL: cover,
+            streamURL: dlURL,
+            downloadURL: dlURL,
+            source: .source5
         )
     }
 

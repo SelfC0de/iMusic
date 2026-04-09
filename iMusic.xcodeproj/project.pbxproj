@@ -68,6 +68,7 @@
 		DBDFB1416AEDBE1FE0084EC4 = {
 			isa = PBXGroup;
 			children = (
+				9A93283178E2C9C4B97C82F8 /* iMusicWidget */,
 				6213CB44497FA9A84253100A /* iMusic */,
 				7F2F759B1018AB569D866721 /* Products */,
 			);
@@ -76,6 +77,7 @@
 		7F2F759B1018AB569D866721 /* Products */ = {
 			isa = PBXGroup;
 			children = (
+				E82562F4CEFE9ECC6314A791 /* iMusicWidget.appex */,
 				F0CD14B0485A878E44DF71D0 /* iMusic.app */,
 			);
 			name = Products;
@@ -105,7 +107,9 @@
 				6C02676E9279400E346D231F /* SharedComponents.swift */,
 				49C36F8A172758EFBB8972F1 /* Assets.xcassets */,
 				7C70189C76C7DBDDF54E9F18 /* Info.plist */,
-			);
+							3D1B113A3228939BD6A4A278 /* EqualizerManager.swift */,
+				1FF12ABF5F8C3BE0E9DF3698 /* EqualizerView.swift */,
+);
 			path = iMusic;
 			sourceTree = "<group>";
 		};
@@ -116,6 +120,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = D7C408997F7BB7F2C5FE5479 /* Build configuration list for PBXNativeTarget "iMusic" */;
 			buildPhases = (
+				CB9CC13435AC640766AA6AB0 /* Embed App Extensions */,
 				174F5B21A81AE70ACFB5ED64 /* Sources */,
 				247F68D53CBE9DB46A8430D2 /* Resources */,
 				7C416216EA03E5B2F23DC2B9 /* Frameworks */,
@@ -158,6 +163,7 @@
 			projectRoot = "";
 			targets = (
 				C2E97C1287756EC08571CDDB /* iMusic */,
+				583E975C849D0D9D98461A2D /* iMusicWidget */,
 			);
 		};
 /* End PBXProject section */
@@ -197,7 +203,9 @@
 				212677A7E7071BE3F1CC73E9 /* LibraryView.swift in Sources */,
 				CA8391F7FBF15EF2A024D54B /* SettingsView.swift in Sources */,
 				010808E1F62BE9C9280BB763 /* SharedComponents.swift in Sources */,
-			);
+							AC9047E805FE1BDE2E2DAF3E /* EqualizerManager.swift in Sources */,
+				967705A15975030559B12D31 /* EqualizerView.swift in Sources */,
+);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */

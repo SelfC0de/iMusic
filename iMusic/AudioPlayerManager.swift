@@ -2,6 +2,7 @@ import Foundation
 import AVFoundation
 import MediaPlayer
 import Combine
+import WidgetKit
 
 final class AudioPlayerManager: NSObject, ObservableObject {
     static let shared = AudioPlayerManager()
@@ -180,6 +181,15 @@ final class AudioPlayerManager: NSObject, ObservableObject {
             MPNowPlayingInfoPropertyPlaybackRate: isPlaying ? 1.0 : 0.0
         ]
         MPNowPlayingInfoCenter.default().nowPlayingInfo = info
+        updateWidgetData(track: track)
+    }
+
+    private func updateWidgetData(track: Track) {
+        let defaults = UserDefaults(suiteName: "group.com.selfcode.imusic")
+        defaults?.set(track.title,  forKey: "widget_title")
+        defaults?.set(track.artist, forKey: "widget_artist")
+        defaults?.set(isPlaying,    forKey: "widget_playing")
+        WidgetCenter.shared.reloadAllTimelines()
     }
 
     var isPlaying: Bool {

@@ -28,6 +28,7 @@ struct PlayerSheet: View {
     @State private var dragOffset: CGFloat = 0
     @State private var swipeTriggered = false
     @State private var showQueue = false
+    @State private var showEQ = false
     @State private var paletteIndex: Int = 0
     @State private var paletteTimer: Timer? = nil
     @State private var morphProgress: Double = 0
@@ -98,11 +99,19 @@ struct PlayerSheet: View {
                                 .lineLimit(1)
                         }
                         Spacer()
-                        Button { showQueue = true } label: {
-                            Image(systemName: "list.bullet")
-                                .font(.system(size: 18))
-                                .foregroundColor(.white.opacity(0.6))
-                                .frame(width: 44, height: 44)
+                        HStack(spacing: 0) {
+                            Button { showEQ = true } label: {
+                                Image(systemName: "slider.vertical.3")
+                                    .font(.system(size: 18))
+                                    .foregroundColor(.white.opacity(0.6))
+                                    .frame(width: 44, height: 44)
+                            }
+                            Button { showQueue = true } label: {
+                                Image(systemName: "list.bullet")
+                                    .font(.system(size: 18))
+                                    .foregroundColor(.white.opacity(0.6))
+                                    .frame(width: 44, height: 44)
+                            }
                         }
                     }
                     .padding(.horizontal, 12)
@@ -174,6 +183,12 @@ struct PlayerSheet: View {
             QueueSheet()
                 .presentationDetents([.medium, .large])
                 .presentationDragIndicator(.visible)
+        }
+        .sheet(isPresented: $showEQ) {
+            EqualizerView()
+                .presentationDetents([.height(440)])
+                .presentationDragIndicator(.visible)
+                .presentationBackground(Theme.bg1)
         }
     }
 

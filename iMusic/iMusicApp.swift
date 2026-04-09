@@ -19,6 +19,7 @@ struct iMusicApp: App {
                 .environmentObject(settings)
                 .environmentObject(library)
                 .environmentObject(toast)
+                .environmentObject(EqualizerManager.shared)
                 .preferredColorScheme(.dark)
         }
     }

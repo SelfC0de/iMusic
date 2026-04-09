@@ -8,9 +8,15 @@ struct Track: Identifiable, Codable, Equatable, Hashable {
     var coverURL: String
     var streamURL: String
     var downloadURL: String
+    var source: MusicSource
 
     static func == (lhs: Track, rhs: Track) -> Bool { lhs.id == rhs.id }
     func hash(into hasher: inout Hasher) { hasher.combine(id) }
+}
+
+enum MusicSource: String, Codable, CaseIterable {
+    case source1 = "source1"
+    case source2 = "source2"
 }
 
 enum PlayerState {

@@ -92,11 +92,17 @@ struct TrackRow: View {
                     .foregroundColor(Theme.accentDim)
             }
 
-            // Duration
-            Text(track.duration)
-                .font(.system(size: 11, weight: .regular).monospacedDigit())
-                .foregroundColor(Theme.textTertiary)
-                .frame(minWidth: 32, alignment: .trailing)
+            // Duration + source dot
+            HStack(spacing: 4) {
+                Circle()
+                    .fill(track.source == .source1 ? Theme.accent : Theme.accentBright)
+                    .frame(width: 5, height: 5)
+                    .opacity(0.7)
+                Text(track.duration)
+                    .font(.system(size: 11, weight: .regular).monospacedDigit())
+                    .foregroundColor(Theme.textTertiary)
+            }
+            .frame(minWidth: 36, alignment: .trailing)
 
             // Download button with circular indicator
             CircularDownloadButton(track: track)

@@ -34,10 +34,40 @@ jobs:
             ONLY_ACTIVE_ARCH=NO \
             build
 
-      - name: Package IPA
+      - name: Inject icons into .app bundle
         run: |
           APP_PATH=$(find build/DerivedData -name "iMusic.app" -type d | head -1)
           echo "App: $APP_PATH"
+
+          ICON_SRC="iMusic/Assets.xcassets/AppIcon.appiconset"
+
+          # Copy PNG icons directly into the .app bundle root
+          cp "$ICON_SRC/icon_120.png"  "$APP_PATH/AppIcon60x60@2x.png"
+          cp "$ICON_SRC/icon_180.png"  "$APP_PATH/AppIcon60x60@3x.png"
+          cp "$ICON_SRC/icon_80.png"   "$APP_PATH/AppIcon40x40@2x.png"
+          cp "$ICON_SRC/icon_87.png"   "$APP_PATH/AppIcon40x40@3x.png"
+          cp "$ICON_SRC/icon_58.png"   "$APP_PATH/AppIcon29x29@2x.png"
+          cp "$ICON_SRC/icon_87.png"   "$APP_PATH/AppIcon29x29@3x.png"
+          cp "$ICON_SRC/icon_40.png"   "$APP_PATH/AppIcon20x20@2x.png"
+          cp "$ICON_SRC/icon_60.png"   "$APP_PATH/AppIcon20x20@3x.png"
+          cp "$ICON_SRC/icon_1024.png" "$APP_PATH/AppIcon1024x1024.png"
+
+          # Patch Info.plist inside .app to reference PNG icons directly
+          PLIST="$APP_PATH/Info.plist"
+          /usr/libexec/PlistBuddy -c "Delete :CFBundleIcons" "$PLIST" 2>/dev/null || true
+          /usr/libexec/PlistBuddy -c "Add :CFBundleIcons dict" "$PLIST"
+          /usr/libexec/PlistBuddy -c "Add :CFBundleIcons:CFBundlePrimaryIcon dict" "$PLIST"
+          /usr/libexec/PlistBuddy -c "Add :CFBundleIcons:CFBundlePrimaryIcon:CFBundleIconFiles array" "$PLIST"
+          /usr/libexec/PlistBuddy -c "Add :CFBundleIcons:CFBundlePrimaryIcon:CFBundleIconFiles:0 string AppIcon60x60" "$PLIST"
+          /usr/libexec/PlistBuddy -c "Add :CFBundleIcons:CFBundlePrimaryIcon:CFBundleIconName string AppIcon" "$PLIST"
+          /usr/libexec/PlistBuddy -c "Add :CFBundleIcons:CFBundlePrimaryIcon:UIPrerenderedIcon bool false" "$PLIST"
+
+          echo "Icons injected:"
+          ls "$APP_PATH"/AppIcon*.png
+
+      - name: Package IPA
+        run: |
+          APP_PATH=$(find build/DerivedData -name "iMusic.app" -type d | head -1)
           mkdir -p Payload
           cp -r "$APP_PATH" Payload/iMusic.app
           zip -r iMusic.ipa Payload

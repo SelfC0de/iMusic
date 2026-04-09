@@ -76,10 +76,15 @@ struct PlayerSheet: View {
                         Button {
                             withAnimation(.spring(response: 0.45, dampingFraction: 0.82)) { showPlayer = false }
                         } label: {
-                            Image(systemName: "chevron.down")
-                                .font(.system(size: 20, weight: .semibold))
-                                .foregroundColor(.white.opacity(0.7))
-                                .frame(width: 44, height: 44)
+                            ZStack {
+                                Circle()
+                                    .fill(Color.white.opacity(0.08))
+                                    .frame(width: 38, height: 38)
+                                    .overlay(Circle().stroke(Color.white.opacity(0.18), lineWidth: 1))
+                                Image(systemName: "chevron.down")
+                                    .font(.system(size: 15, weight: .semibold))
+                                    .foregroundColor(.white.opacity(0.85))
+                            }
                         }
                         Spacer()
                         VStack(spacing: 1) {
@@ -444,113 +449,101 @@ struct VinylDisc: View {
     let accentColor: Color
     let size: CGFloat
 
-    @State private var rotation: Double = 0
-    let timer = Timer.publish(every: 0.016, on: .main, in: .common).autoconnect()
+    @State private var isAnimating = false
 
     var body: some View {
-        ZStack {
-            // outer glow
-            Circle()
-                .fill(
-                    RadialGradient(
-                        colors: [accentColor.opacity(0.35), Color.clear],
-                        center: .center, startRadius: size*0.35, endRadius: size*0.55
+        TimelineView(.animation(paused: !isPlaying)) { tl in
+            let angle = tl.date.timeIntervalSinceReferenceDate * 27.0
+            ZStack {
+                // outer glow
+                Circle()
+                    .fill(
+                        RadialGradient(
+                            colors: [accentColor.opacity(0.35), Color.clear],
+                            center: .center, startRadius: size*0.35, endRadius: size*0.55
+                        )
                     )
-                )
-                .frame(width: size + 40, height: size + 40)
-                .blur(radius: 8)
+                    .frame(width: size + 40, height: size + 40)
+                    .blur(radius: 8)
 
-            // vinyl body
-            Circle()
-                .fill(Color(red: 0.06, green: 0.05, blue: 0.09))
-                .frame(width: size, height: size)
-                .rotationEffect(.degrees(rotation))
-                .overlay(
-                    ZStack {
-                        // grooves
-                        ForEach([0.28, 0.38, 0.48, 0.58, 0.68, 0.78, 0.88], id: \.self) { f in
-                            Circle()
-                                .stroke(accentColor.opacity(0.07 + f * 0.04), lineWidth: 0.8)
-                                .frame(width: size * f, height: size * f)
-                        }
-                        // spectrum inside disc — clipped to circle
-                        SpectrumBars(isPlaying: isPlaying, accentColor: accentColor)
-                            .frame(width: size, height: size)
-                            .clipShape(Circle())
-                            .opacity(0.75)
-                        // sheen on top of spectrum
-                        Circle()
-                            .fill(
-                                LinearGradient(
-                                    colors: [Color.white.opacity(0.05), Color.clear, Color.white.opacity(0.03)],
-                                    startPoint: .topLeading, endPoint: .bottomTrailing
-                                )
-                            )
-                            .frame(width: size, height: size)
-                        // center label
+                // vinyl body
+                Circle()
+                    .fill(Color(red: 0.06, green: 0.05, blue: 0.09))
+                    .frame(width: size, height: size)
+                    .overlay(
                         ZStack {
+                            // grooves
+                            ForEach([0.28, 0.38, 0.48, 0.58, 0.68, 0.78, 0.88], id: \.self) { f in
+                                Circle()
+                                    .stroke(accentColor.opacity(0.07 + f * 0.04), lineWidth: 0.8)
+                                    .frame(width: size * f, height: size * f)
+                            }
+                            // spectrum inside disc — clipped to circle
+                            SpectrumBars(isPlaying: isPlaying, accentColor: accentColor, time: tl.date.timeIntervalSinceReferenceDate)
+                                .frame(width: size, height: size)
+                                .clipShape(Circle())
+                                .opacity(0.75)
+                            // sheen
                             Circle()
                                 .fill(
-                                    RadialGradient(
-                                        colors: [accentColor.opacity(0.9), accentColor.opacity(0.5)],
-                                        center: .center, startRadius: 0, endRadius: size * 0.18
+                                    LinearGradient(
+                                        colors: [Color.white.opacity(0.05), Color.clear, Color.white.opacity(0.03)],
+                                        startPoint: .topLeading, endPoint: .bottomTrailing
                                     )
                                 )
-                                .frame(width: size * 0.36, height: size * 0.36)
-                                .overlay(
-                                    Circle().stroke(Color.white.opacity(0.15), lineWidth: 1)
-                                )
-                            // cover thumbnail
-                            CachedAsyncImage(url: coverURL)
-                                .frame(width: size * 0.28, height: size * 0.28)
-                                .clipShape(Circle())
-                                .opacity(0.7)
-                            // center hole
-                            Circle()
-                                .fill(Color(red: 0.04, green: 0.03, blue: 0.07))
-                                .frame(width: size * 0.055, height: size * 0.055)
+                                .frame(width: size, height: size)
+                            // center label (counter-rotates to stay upright)
+                            ZStack {
+                                Circle()
+                                    .fill(
+                                        RadialGradient(
+                                            colors: [accentColor.opacity(0.9), accentColor.opacity(0.5)],
+                                            center: .center, startRadius: 0, endRadius: size * 0.23
+                                        )
+                                    )
+                                    .frame(width: size * 0.46, height: size * 0.46)
+                                    .overlay(Circle().stroke(Color.white.opacity(0.15), lineWidth: 1))
+                                CachedAsyncImage(url: coverURL)
+                                    .frame(width: size * 0.38, height: size * 0.38)
+                                    .clipShape(Circle())
+                                    .opacity(0.88)
+                                Circle()
+                                    .fill(Color(red: 0.04, green: 0.03, blue: 0.07))
+                                    .frame(width: size * 0.055, height: size * 0.055)
+                            }
+                            .rotationEffect(.degrees(-angle))
                         }
-                        .rotationEffect(.degrees(-rotation)) // counter-rotate so label stays upright
-                    }
-                    .frame(width: size, height: size)
-                    .rotationEffect(.degrees(rotation))
-                )
+                        .frame(width: size, height: size)
+                    )
+                    .rotationEffect(.degrees(angle))
 
-            // progress arc
-            Circle()
-                .trim(from: 0, to: CGFloat(progress))
-                .stroke(
-                    accentColor.opacity(0.9),
-                    style: StrokeStyle(lineWidth: 3, lineCap: .round)
-                )
-                .frame(width: size + 20, height: size + 20)
-                .rotationEffect(.degrees(-90))
+                // progress arc
+                Circle()
+                    .trim(from: 0, to: CGFloat(progress))
+                    .stroke(accentColor.opacity(0.9), style: StrokeStyle(lineWidth: 3, lineCap: .round))
+                    .frame(width: size + 20, height: size + 20)
+                    .rotationEffect(.degrees(-90))
+                Circle()
+                    .trim(from: CGFloat(progress), to: 1)
+                    .stroke(Color.white.opacity(0.08), style: StrokeStyle(lineWidth: 3))
+                    .frame(width: size + 20, height: size + 20)
+                    .rotationEffect(.degrees(-90))
 
-            Circle()
-                .trim(from: CGFloat(progress), to: 1)
-                .stroke(Color.white.opacity(0.08), style: StrokeStyle(lineWidth: 3))
-                .frame(width: size + 20, height: size + 20)
-                .rotationEffect(.degrees(-90))
+                // progress dot
+                let dotAngle = (progress - 0.25) * 2 * Double.pi
+                Circle()
+                    .fill(.white)
+                    .frame(width: 10, height: 10)
+                    .offset(
+                        x: CGFloat(cos(dotAngle)) * (size / 2 + 10),
+                        y: CGFloat(sin(dotAngle)) * (size / 2 + 10)
+                    )
 
-            // progress dot
-            let dotAngle = (progress - 0.25) * 2 * .pi
-            Circle()
-                .fill(.white)
-                .frame(width: 10, height: 10)
-                .offset(
-                    x: CGFloat(cos(dotAngle)) * (size / 2 + 10),
-                    y: CGFloat(sin(dotAngle)) * (size / 2 + 10)
-                )
-
-            // needle
-            NeedleView(size: size, accentColor: accentColor, isPlaying: isPlaying)
+                // needle
+                NeedleView(size: size, accentColor: accentColor, isPlaying: isPlaying, time: tl.date.timeIntervalSinceReferenceDate)
+            }
         }
         .frame(width: size + 60, height: size + 20)
-        .onReceive(timer) { _ in
-            guard isPlaying else { return }
-            rotation += 0.45
-            if rotation >= 360 { rotation -= 360 }
-        }
     }
 }
 
@@ -560,30 +553,26 @@ struct NeedleView: View {
     let size: CGFloat
     let accentColor: Color
     let isPlaying: Bool
-    @State private var pulse: Double = 0
-    let timer = Timer.publish(every: 0.016, on: .main, in: .common).autoconnect()
+    let time: Double
 
     var body: some View {
         GeometryReader { geo in
             let cx = geo.size.width / 2
             let cy = geo.size.height / 2
+            let pivotX = cx + size * 0.48
+            let pivotY = cy - size * 0.38
+            let tipAngle: Double = -0.42
+            let tipX = cx + (size / 2 + 2) * CGFloat(cos(tipAngle))
+            let tipY = cy + (size / 2 + 2) * CGFloat(sin(tipAngle))
+            let pulse = isPlaying ? (sin(time * 4) * 0.5 + 0.5) : 0.0
 
             ZStack {
-                // needle arm
                 Path { p in
-                    let pivotX = cx + size * 0.48
-                    let pivotY = cy - size * 0.38
-                    let tipAngle: Double = -0.42
-                    let tipX = cx + (size / 2 + 2) * CGFloat(cos(tipAngle))
-                    let tipY = cy + (size / 2 + 2) * CGFloat(sin(tipAngle))
                     p.move(to: CGPoint(x: pivotX, y: pivotY))
                     p.addLine(to: CGPoint(x: tipX, y: tipY))
                 }
                 .stroke(Color.white.opacity(0.65), style: StrokeStyle(lineWidth: 2.5, lineCap: .round))
 
-                // pivot
-                let pivotX = cx + size * 0.48
-                let pivotY = cy - size * 0.38
                 Circle()
                     .fill(Color(red: 0.55, green: 0.55, blue: 0.6))
                     .frame(width: 12, height: 12)
@@ -593,20 +582,11 @@ struct NeedleView: View {
                     .frame(width: 6, height: 6)
                     .position(x: pivotX, y: pivotY)
 
-                // stylus tip glow
-                let tipAngle: Double = -0.42
-                let tipX = cx + (size / 2 + 2) * CGFloat(cos(tipAngle))
-                let tipY = cy + (size / 2 + 2) * CGFloat(sin(tipAngle))
                 Circle()
-                    .fill(accentColor.opacity(isPlaying ? 0.7 + 0.3 * pulse : 0.3))
+                    .fill(accentColor.opacity(isPlaying ? 0.5 + 0.5 * pulse : 0.3))
                     .frame(width: CGFloat(6 + 2 * pulse), height: CGFloat(6 + 2 * pulse))
                     .position(x: tipX, y: tipY)
-                    .animation(.easeInOut(duration: 0.3), value: pulse)
             }
-        }
-        .onReceive(timer) { _ in
-            if isPlaying { pulse = pulse < 0.5 ? 1.0 : 0.0 }
-            else { pulse = 0 }
         }
     }
 }
@@ -616,63 +596,52 @@ struct NeedleView: View {
 struct SpectrumBars: View {
     let isPlaying: Bool
     let accentColor: Color
-    @State private var bars: [Double] = Array(repeating: 0.15, count: 28)
-    @State private var phase: Double = 0
-    let timer = Timer.publish(every: 0.033, on: .main, in: .common).autoconnect()
+    let time: Double
+
+    private let n = 28
 
     var body: some View {
         GeometryReader { geo in
             let w = geo.size.width
             let h = geo.size.height
-            let n = bars.count
             let bw: CGFloat = 3.5
             let gap: CGFloat = 2.5
             let totalW = CGFloat(n) * (bw + gap) - gap
             let startX = (w - totalW) / 2
-            // bars rise from vertical center of disc
             let baseY = h / 2
 
             ZStack {
                 ForEach(0..<n, id: \.self) { i in
-                    let bh = CGFloat(bars[i]) * h * 0.44
-                    let x = startX + CGFloat(i) * (bw + gap)
-                    // fade towards edges (disc is round so corners are clipped anyway)
                     let centerDist = abs(Double(i) - Double(n) / 2) / (Double(n) / 2)
-                    let alpha = (1.0 - centerDist * 0.55)
+                    let alpha = 1.0 - centerDist * 0.55
+                    let rawH: Double
+                    if isPlaying {
+                        let wave1 = sin(time * 2.8 + Double(i) * 0.55)
+                        let wave2 = sin(time * 1.7 + Double(i) * 0.3)
+                        rawH = 0.15 + 0.72 * abs(wave1 * 0.6 + wave2 * 0.4)
+                    } else {
+                        rawH = 0.06
+                    }
+                    let bh = CGFloat(rawH) * h * 0.44
+                    let x = startX + CGFloat(i) * (bw + gap)
 
-                    // up bar
                     Rectangle()
                         .fill(accentColor.opacity(0.55 * alpha))
                         .frame(width: bw, height: max(2, bh))
                         .cornerRadius(2)
                         .position(x: x + bw / 2, y: baseY - bh / 2)
 
-                    // mirror down
                     Rectangle()
-                        .fill(accentColor.opacity(0.25 * alpha))
-                        .frame(width: bw, height: max(2, bh * 0.5))
+                        .fill(accentColor.opacity(0.22 * alpha))
+                        .frame(width: bw, height: max(2, bh * 0.45))
                         .cornerRadius(2)
-                        .position(x: x + bw / 2, y: baseY + bh * 0.25)
+                        .position(x: x + bw / 2, y: baseY + bh * 0.225)
 
-                    // bright top cap
                     Rectangle()
-                        .fill(Color.white.opacity(0.35 * alpha))
+                        .fill(Color.white.opacity(0.3 * alpha))
                         .frame(width: bw, height: max(1, min(4, bh * 0.08)))
                         .cornerRadius(2)
                         .position(x: x + bw / 2, y: baseY - bh + 2)
-                }
-            }
-        }
-        .onReceive(timer) { _ in
-            if isPlaying {
-                phase += 0.045
-                for i in 0..<bars.count {
-                    let target = 0.15 + 0.75 * abs(sin(phase + Double(i) * 0.55 + sin(phase * 0.4) * 1.8))
-                    bars[i] += (target - bars[i]) * 0.18
-                }
-            } else {
-                for i in 0..<bars.count {
-                    bars[i] += (0.05 - bars[i]) * 0.06
                 }
             }
         }

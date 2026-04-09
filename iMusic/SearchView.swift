@@ -112,38 +112,14 @@ struct SearchView: View {
                 .font(.system(size: 28, weight: .bold))
                 .foregroundColor(Theme.textPrimary)
             Spacer()
-            // source count badge
-            if !vm.tracks.isEmpty {
-                sourceStats
-            }
+
         }
         .padding(.horizontal, 20)
         .padding(.top, 56)
         .padding(.bottom, 12)
     }
 
-    private var sourceStats: some View {
-        HStack(spacing: 6) {
-            let s1 = vm.tracks.filter { $0.source == .source1 }.count
-            let s2 = vm.tracks.filter { $0.source == .source2 }.count
-            if s1 > 0 {
-                sourcePill(count: s1, color: Theme.accent)
-            }
-            if s2 > 0 {
-                sourcePill(count: s2, color: Theme.accentBright)
-            }
-        }
-    }
 
-    private func sourcePill(count: Int, color: Color) -> some View {
-        Text("\(count)")
-            .font(.system(size: 11, weight: .bold))
-            .foregroundColor(color)
-            .padding(.horizontal, 7)
-            .padding(.vertical, 3)
-            .background(color.opacity(0.15))
-            .clipShape(Capsule())
-    }
 
     private var searchBar: some View {
         HStack(spacing: 10) {

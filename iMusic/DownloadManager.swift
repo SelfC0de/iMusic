@@ -117,7 +117,7 @@ extension DownloadManager: URLSessionDownloadDelegate {
     }
 
     func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
-        guard let error = error,
+        guard error != nil,
               let trackId = taskToTrackId[task.taskIdentifier] else { return }
         DispatchQueue.main.async {
             self.downloads.removeValue(forKey: trackId)

@@ -1,3 +1,4 @@
+import SwiftUI
 import Foundation
 
 struct Track: Identifiable, Codable, Equatable, Hashable {
@@ -56,7 +57,7 @@ struct ToastMessage: Identifiable {
 
     enum ToastStyle {
         case info, success, error, warning
-        var color: SwiftUI.Color {
+        var color: Color {
             switch self {
             case .info: return Theme.accent
             case .success: return Theme.success

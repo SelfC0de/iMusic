@@ -35,7 +35,7 @@ struct ContentView: View {
             ToastOverlay()
         }
         .ignoresSafeArea(edges: .bottom)
-        .onChange(of: player.currentTrack?.id) { _ in
+        .onChange(of: player.currentTrack?.id) {
             if let track = player.currentTrack {
                 LibraryStore.shared.addToRecent(track)
             }

@@ -30,8 +30,7 @@ final class LibraryStore: ObservableObject {
 
     func saveDownloaded(track: Track, localURL: URL) {
         if !downloaded.contains(where: { $0.id == track.id }) {
-            var t = track
-            downloaded.insert(t, at: 0)
+            downloaded.insert(track, at: 0)
             save()
         }
     }

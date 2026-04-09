@@ -177,7 +177,7 @@ final class AudioPlayerManager: NSObject, ObservableObject {
             MPMediaItemPropertyArtist: track.artist,
             MPNowPlayingInfoPropertyElapsedPlaybackTime: currentTime,
             MPMediaItemPropertyPlaybackDuration: duration,
-            MPNowPlayingInfoPropertyPlaybackRate: playerState == .playing ? 1.0 : 0.0
+            MPNowPlayingInfoPropertyPlaybackRate: isPlaying ? 1.0 : 0.0
         ]
         MPNowPlayingInfoCenter.default().nowPlayingInfo = info
     }

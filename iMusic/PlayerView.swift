@@ -9,6 +9,8 @@ struct PlayerView: View {
     @State private var isDragging = false
     @State private var dragProgress: Double = 0
     @State private var showQueue = false
+    @State private var dragOffset: CGFloat = 0
+    @State private var swipeTriggered = false
 
     var body: some View {
         GeometryReader { geo in
@@ -69,8 +71,50 @@ struct PlayerView: View {
                         }
                     }
                     .frame(width: artSize, height: artSize)
+                    .offset(x: dragOffset)
+                    .gesture(
+                        DragGesture(minimumDistance: 20)
+                            .onChanged { v in
+                                guard abs(v.translation.width) > abs(v.translation.height) else { return }
+                                dragOffset = v.translation.width * 0.4
+                            }
+                            .onEnded { v in
+                                let threshold: CGFloat = 60
+                                if v.translation.width < -threshold && !swipeTriggered {
+                                    swipeTriggered = true
+                                    withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) { dragOffset = -80 }
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+                                        player.playNext()
+                                        SettingsStore.shared.triggerHaptic(.medium)
+                                        withAnimation(.spring(response: 0.4, dampingFraction: 0.7)) { dragOffset = 0 }
+                                        swipeTriggered = false
+                                    }
+                                } else if v.translation.width > threshold && !swipeTriggered {
+                                    swipeTriggered = true
+                                    withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) { dragOffset = 80 }
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+                                        player.playPrevious()
+                                        SettingsStore.shared.triggerHaptic(.medium)
+                                        withAnimation(.spring(response: 0.4, dampingFraction: 0.7)) { dragOffset = 0 }
+                                        swipeTriggered = false
+                                    }
+                                } else {
+                                    withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) { dragOffset = 0 }
+                                }
+                            }
+                    )
 
-                    Spacer(minLength: 16)
+                    // Visualizer
+                    if player.isPlaying {
+                        WaveformVisualizer()
+                            .frame(height: 28)
+                            .padding(.horizontal, 24)
+                            .transition(.opacity.combined(with: .scale(scale: 0.8)))
+                    } else {
+                        Color.clear.frame(height: 28)
+                    }
+
+                    Spacer(minLength: 8)
 
                     // Track info
                     HStack(alignment: .center, spacing: 12) {

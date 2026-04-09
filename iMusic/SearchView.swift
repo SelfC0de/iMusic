@@ -13,10 +13,12 @@ final class SearchViewModel: ObservableObject {
     // per-source pagination state
     private var hasMoreS1 = true
     private var hasMoreS2 = true
-    var hasMore: Bool { hasMoreS1 || hasMoreS2 }
+    private var hasMoreS3 = true
+    var hasMore: Bool { hasMoreS1 || hasMoreS2 || hasMoreS3 }
 
     private var pageS1 = 0
     private var pageS2 = 0
+    private var pageS3 = 0
     private var lastQuery = ""
     private var searchTask: Task<Void, Never>?
 
@@ -24,8 +26,8 @@ final class SearchViewModel: ObservableObject {
         let q = query.trimmed
         guard !q.isEmpty else { return }
         searchTask?.cancel()
-        pageS1 = 0; pageS2 = 0
-        hasMoreS1 = true; hasMoreS2 = true
+        pageS1 = 0; pageS2 = 0; pageS3 = 0
+        hasMoreS1 = true; hasMoreS2 = true; hasMoreS3 = true
         lastQuery = q
         tracks = []
         isLoading = true
@@ -39,8 +41,10 @@ final class SearchViewModel: ObservableObject {
             // heuristic: if either source returned fewer than 48, it's exhausted
             let s1c = results.filter { $0.source == .source1 }.count
             let s2c = results.filter { $0.source == .source2 }.count
+            let s3c = results.filter { $0.source == .source3 }.count
             hasMoreS1 = s1c >= 48
-            hasMoreS2 = s2c >= 40   // zvukofon pages may vary
+            hasMoreS2 = s2c >= 40
+            hasMoreS3 = s3c >= 20
             isLoading = false
         }
     }
@@ -52,18 +56,21 @@ final class SearchViewModel: ObservableObject {
         let q = lastQuery
         let doS1 = hasMoreS1
         let doS2 = hasMoreS2
+        let doS3 = hasMoreS3
         let nextS1 = pageS1 + 1
         let nextS2 = pageS2 + 1
+        let nextS3 = pageS3 + 1
 
         Task {
             async let r1: [Track] = doS1 ? SearchService.shared.searchSource1(query: q, page: nextS1) : []
             async let r2: [Track] = doS2 ? SearchService.shared.searchSource2(query: q, page: nextS2) : []
-            let (t1, t2) = await (r1, r2)
+            async let r3: [Track] = doS3 ? SearchService.shared.searchSource3(query: q, page: nextS3) : []
+            let (t1, t2, t3) = await (r1, r2, r3)
 
             // Deduplicate against existing
             var existingKeys = Set(tracks.map { dedupeKey($0) })
             var merged: [Track] = []
-            for t in t1 + t2 {
+            for t in t1 + t2 + t3 {
                 let k = dedupeKey(t)
                 if !existingKeys.contains(k) { existingKeys.insert(k); merged.append(t) }
             }
@@ -71,6 +78,7 @@ final class SearchViewModel: ObservableObject {
             tracks.append(contentsOf: merged)
             if doS1 { pageS1 = nextS1; hasMoreS1 = t1.count >= 48 }
             if doS2 { pageS2 = nextS2; hasMoreS2 = t2.count >= 40 }
+            if doS3 { pageS3 = nextS3; hasMoreS3 = t3.count >= 20 }
             isLoadingMore = false
         }
     }
@@ -79,8 +87,8 @@ final class SearchViewModel: ObservableObject {
         searchTask?.cancel()
         query = ""; tracks = []; error = nil
         isLoading = false; isLoadingMore = false
-        hasMoreS1 = true; hasMoreS2 = true
-        pageS1 = 0; pageS2 = 0; lastQuery = ""
+        hasMoreS1 = true; hasMoreS2 = true; hasMoreS3 = true
+        pageS1 = 0; pageS2 = 0; pageS3 = 0; lastQuery = ""
     }
 
     private func dedupeKey(_ t: Track) -> String {

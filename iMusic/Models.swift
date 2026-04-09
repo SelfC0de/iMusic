@@ -18,6 +18,7 @@ struct Track: Identifiable, Codable, Equatable, Hashable {
 enum MusicSource: String, Codable, CaseIterable {
     case source1 = "source1"
     case source2 = "source2"
+    case source3 = "source3"
 }
 
 enum PlayerState {

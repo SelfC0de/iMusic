@@ -8,6 +8,7 @@ final class SearchService {
 
     private let ep1 = "https://rus.hitmotop.com"
     private let ep2 = "https://muz.zvukofon.com"
+    private let ep3 = "https://ruo.morsmusic.org"
     private let pageSize = 48
 
     private let ua = "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1"
@@ -16,21 +17,15 @@ final class SearchService {
     func searchBoth(query: String, page: Int) async -> [Track] {
         async let r1 = searchSource1(query: query, page: page)
         async let r2 = searchSource2(query: query, page: page)
+        async let r3 = searchSource3(query: query, page: page)
 
-        let (t1, t2) = await (r1, r2)
+        let (t1, t2, t3) = await (r1, r2, r3)
 
-        // Interleave results: 1 from source1, 1 from source2, etc.
         var merged: [Track] = []
         var seen = Set<String>()
-        let maxCount = max(t1.count, t2.count)
+        let maxCount = max(t1.count, max(t2.count, t3.count))
         for i in 0..<maxCount {
-            if i < t1.count {
-                let t = t1[i]
-                let key = dedupeKey(t)
-                if !seen.contains(key) { seen.insert(key); merged.append(t) }
-            }
-            if i < t2.count {
-                let t = t2[i]
+            for t in [i < t1.count ? t1[i] : nil, i < t2.count ? t2[i] : nil, i < t3.count ? t3[i] : nil].compactMap({ $0 }) {
                 let key = dedupeKey(t)
                 if !seen.contains(key) { seen.insert(key); merged.append(t) }
             }
@@ -57,7 +52,16 @@ final class SearchService {
         return parseSource2(html)
     }
 
+    func searchSource3(query: String, page: Int) async -> [Track] {
+        let urlStr = page == 0
+            ? "\(ep3)/search/\(query.urlEncoded)"
+            : "\(ep3)/search/\(query.urlEncoded)?page=\(page + 1)"
+        guard let html = await fetchHTML(urlStr) else { return [] }
+        return parseSource3(html)
+    }
+
     // MARK: – HTTP
+
 
     private func fetchHTML(_ urlString: String) async -> String? {
         guard let url = URL(string: urlString) else { return nil }
@@ -202,7 +206,97 @@ final class SearchService {
         )
     }
 
+    // MARK: – Parser Source3 (morsmusic)
+
+    private func parseSource3(_ html: String) -> [Track] {
+        var tracks: [Track] = []
+        var pos = html.startIndex
+        // Find wrapper-tracklist container first
+        guard let listStart = html.range(of: "wrapper-tracklist muslist") else { return [] }
+        var searchFrom = listStart.lowerBound
+        let pattern = #"<div[^>]*class="[^"]*track[^"]*mustoggler[^"]*"[^>]*data-musmeta="([^"]+)"[^>]*>"#
+        while let range = html.range(of: pattern, options: .regularExpression, range: searchFrom..<html.endIndex) {
+            // Extract the full track block — find next matching track div or end
+            let blockStart = range.lowerBound
+            let searchEnd = html.endIndex
+            // Find closing </div> for track block (we need a reasonably sized chunk)
+            let chunkEnd = html.index(blockStart, offsetBy: min(3000, html.distance(from: blockStart, to: searchEnd)))
+            let block = String(html[blockStart..<chunkEnd])
+            if let t = parseItem3(block) { tracks.append(t) }
+            searchFrom = range.upperBound
+        }
+        return tracks
+    }
+
+    private func parseItem3(_ block: String) -> Track? {
+        var id = ""
+        var title = ""
+        var artist = ""
+        var cover = ""
+        var streamURL = ""
+        var dlURL = ""
+        var duration = "0:00"
+
+        // data-musmeta JSON
+        if let metaRaw = block.firstCapture(pattern: #"data-musmeta="([^"]+)""#) {
+            let meta = metaRaw.htmlEntityDecoded
+            if let json = meta.parseJSON {
+                artist    = json["artist"] as? String ?? ""
+                title     = json["title"]  as? String ?? ""
+                let rawUrl = json["url"]   as? String ?? ""
+                streamURL = rawUrl.hasPrefix("http") ? rawUrl : rawUrl.isEmpty ? "" : "\(ep3)\(rawUrl)"
+                let rawImg = json["img"]   as? String ?? ""
+                cover = rawImg.hasPrefix("http") ? rawImg : rawImg.isEmpty ? "" : "\(ep3)\(rawImg)"
+                id    = json["id"] as? String ?? ""
+            }
+        }
+
+        // Title from .media-link.media-name
+        if let v = block.firstCapture(pattern: #"<a[^>]*class="[^"]*media-link media-name[^"]*"[^>]*>\s*([\s\S]*?)\s*</a>"#),
+           !v.isBlank { title = v.trimmed }
+
+        // Artist — collect all <a> inside .media-link.media-artist
+        if let artistBlock = block.firstCapture(pattern: #"<div[^>]*class="media-link media-artist"[^>]*>([\s\S]*?)</div>"#) {
+            let pattern2 = #"<a[^>]*>([^<]+)</a>"#
+            if let re = try? NSRegularExpression(pattern: pattern2) {
+                let matches = re.matches(in: artistBlock, range: NSRange(artistBlock.startIndex..., in: artistBlock))
+                let names = matches.compactMap { m -> String? in
+                    guard let r = Range(m.range(at: 1), in: artistBlock) else { return nil }
+                    return String(artistBlock[r]).trimmed
+                }
+                if !names.isEmpty { artist = names.joined(separator: ", ") }
+            }
+        }
+
+        // Cover from background-image style on track-img-box
+        if let v = block.firstCapture(pattern: #"background-image:\s*url\('([^']+)'\)"#) {
+            cover = v.hasPrefix("http") ? v : "\(ep3)\(v)"
+        }
+
+        // Duration
+        if let v = block.firstCapture(pattern: #"<div[^>]*class="[^"]*track__fulltime[^"]*">([\d:]+)</div>"#) { duration = v }
+
+        // Download link — /load/... .mp3
+        if let dlHref = block.firstCapture(pattern: #"href="(/load/[^"]+\.mp3)""#) {
+            let cleaned = dlHref.cleanMp3Suffix
+            dlURL = "\(ep3)\(cleaned)"
+            if streamURL.isEmpty { streamURL = dlURL }
+        }
+
+        guard !streamURL.isEmpty else { return nil }
+        if id.isEmpty { id = "s3_\(streamURL.stableHash)" }
+
+        return Track(
+            id: id, title: title.emptyFallback, artist: artist.emptyFallback,
+            duration: duration, coverURL: cover,
+            streamURL: streamURL,
+            downloadURL: dlURL.isEmpty ? streamURL : dlURL,
+            source: .source3
+        )
+    }
+
     // MARK: – Dedup key: normalize title+artist
+
 
     private func dedupeKey(_ t: Track) -> String {
         let a = t.artist.lowercased().filter { $0.isLetter || $0.isNumber }

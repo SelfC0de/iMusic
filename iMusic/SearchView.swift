@@ -280,32 +280,28 @@ struct SearchView: View {
                 }
 
                 if vm.hasMore {
-                    Button { vm.loadMore() } label: {
+                    Color.clear
+                        .frame(height: 1)
+                        .onAppear { vm.loadMore() }
+
+                    if vm.isLoadingMore {
                         HStack(spacing: 8) {
-                            if vm.isLoadingMore {
-                                ZStack {
-                                    Circle().stroke(Theme.border, lineWidth: 2.5).frame(width: 20, height: 20)
-                                    Circle()
-                                        .trim(from: 0, to: 0.65)
-                                        .stroke(Theme.accent, style: StrokeStyle(lineWidth: 2.5, lineCap: .round))
-                                        .frame(width: 20, height: 20)
-                                        .rotationEffect(.degrees(-90))
-                                        .modifier(SpinModifier())
-                                }
-                            } else {
-                                Image(systemName: "arrow.down.circle")
-                                    .font(.system(size: 16))
-                                    .foregroundColor(Theme.accent)
+                            ZStack {
+                                Circle().stroke(Theme.border, lineWidth: 2.5).frame(width: 20, height: 20)
+                                Circle()
+                                    .trim(from: 0, to: 0.65)
+                                    .stroke(Theme.accent, style: StrokeStyle(lineWidth: 2.5, lineCap: .round))
+                                    .frame(width: 20, height: 20)
+                                    .rotationEffect(.degrees(-90))
+                                    .modifier(SpinModifier())
                             }
-                            Text(vm.isLoadingMore ? "Загрузка..." : "Загрузить ещё")
-                                .font(.system(size: 14, weight: .medium))
-                                .foregroundColor(vm.isLoadingMore ? Theme.textTertiary : Theme.accent)
+                            Text("Загрузка...")
+                                .font(.system(size: 13))
+                                .foregroundColor(Theme.textTertiary)
                         }
                         .frame(maxWidth: .infinity)
-                        .padding(.vertical, 16)
+                        .padding(.vertical, 12)
                     }
-                    .buttonStyle(.plain)
-                    .disabled(vm.isLoadingMore)
                 }
             }
             .padding(.bottom, 140)

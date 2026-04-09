@@ -599,51 +599,79 @@ struct SpectrumBars: View {
     let time: Double
 
     private let n = 28
+    private let bw: CGFloat = 3.5
+    private let gap: CGFloat = 2.5
+
+    private func barHeight(index i: Int, totalH h: CGFloat) -> CGFloat {
+        let rawH: Double
+        if isPlaying {
+            let wave1 = sin(time * 2.8 + Double(i) * 0.55)
+            let wave2 = sin(time * 1.7 + Double(i) * 0.3)
+            rawH = 0.15 + 0.72 * abs(wave1 * 0.6 + wave2 * 0.4)
+        } else {
+            rawH = 0.06
+        }
+        return CGFloat(rawH) * h * 0.44
+    }
+
+    private func barAlpha(index i: Int) -> Double {
+        let centerDist = abs(Double(i) - Double(n) / 2) / (Double(n) / 2)
+        return 1.0 - centerDist * 0.55
+    }
 
     var body: some View {
         GeometryReader { geo in
             let w = geo.size.width
             let h = geo.size.height
-            let bw: CGFloat = 3.5
-            let gap: CGFloat = 2.5
             let totalW = CGFloat(n) * (bw + gap) - gap
             let startX = (w - totalW) / 2
             let baseY = h / 2
 
             ZStack {
                 ForEach(0..<n, id: \.self) { i in
-                    let centerDist = abs(Double(i) - Double(n) / 2) / (Double(n) / 2)
-                    let alpha = 1.0 - centerDist * 0.55
-                    let rawH: Double
-                    if isPlaying {
-                        let wave1 = sin(time * 2.8 + Double(i) * 0.55)
-                        let wave2 = sin(time * 1.7 + Double(i) * 0.3)
-                        rawH = 0.15 + 0.72 * abs(wave1 * 0.6 + wave2 * 0.4)
-                    } else {
-                        rawH = 0.06
-                    }
-                    let bh = CGFloat(rawH) * h * 0.44
-                    let x = startX + CGFloat(i) * (bw + gap)
-
-                    Rectangle()
-                        .fill(accentColor.opacity(0.55 * alpha))
-                        .frame(width: bw, height: max(2, bh))
-                        .cornerRadius(2)
-                        .position(x: x + bw / 2, y: baseY - bh / 2)
-
-                    Rectangle()
-                        .fill(accentColor.opacity(0.22 * alpha))
-                        .frame(width: bw, height: max(2, bh * 0.45))
-                        .cornerRadius(2)
-                        .position(x: x + bw / 2, y: baseY + bh * 0.225)
-
-                    Rectangle()
-                        .fill(Color.white.opacity(0.3 * alpha))
-                        .frame(width: bw, height: max(1, min(4, bh * 0.08)))
-                        .cornerRadius(2)
-                        .position(x: x + bw / 2, y: baseY - bh + 2)
+                    SpectrumBarGroup(
+                        index: i,
+                        bw: bw,
+                        bh: barHeight(index: i, totalH: h),
+                        alpha: barAlpha(index: i),
+                        x: startX + CGFloat(i) * (bw + gap),
+                        baseY: baseY,
+                        accentColor: accentColor
+                    )
                 }
             }
+        }
+    }
+}
+
+private struct SpectrumBarGroup: View {
+    let index: Int
+    let bw: CGFloat
+    let bh: CGFloat
+    let alpha: Double
+    let x: CGFloat
+    let baseY: CGFloat
+    let accentColor: Color
+
+    var body: some View {
+        ZStack {
+            Rectangle()
+                .fill(accentColor.opacity(0.55 * alpha))
+                .frame(width: bw, height: max(2, bh))
+                .cornerRadius(2)
+                .position(x: x + bw / 2, y: baseY - bh / 2)
+
+            Rectangle()
+                .fill(accentColor.opacity(0.22 * alpha))
+                .frame(width: bw, height: max(2, bh * 0.45))
+                .cornerRadius(2)
+                .position(x: x + bw / 2, y: baseY + bh * 0.225)
+
+            Rectangle()
+                .fill(Color.white.opacity(0.3 * alpha))
+                .frame(width: bw, height: max(1, min(4, bh * 0.08)))
+                .cornerRadius(2)
+                .position(x: x + bw / 2, y: baseY - bh + 2)
         }
     }
 }

@@ -172,7 +172,7 @@ final class AudioPlayerManager: NSObject, ObservableObject {
 
     private func updateNowPlaying() {
         guard let track = currentTrack else { return }
-        var info: [String: Any] = [
+        let info: [String: Any] = [
             MPMediaItemPropertyTitle: track.title,
             MPMediaItemPropertyArtist: track.artist,
             MPNowPlayingInfoPropertyElapsedPlaybackTime: currentTime,

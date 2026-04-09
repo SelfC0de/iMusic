@@ -12,6 +12,7 @@ struct TrackRow: View {
     @EnvironmentObject var toast: ToastManager
     @ObservedObject var downloads = DownloadManager.shared
     @State private var showMenu = false
+    @State private var showAddToPlaylist = false
 
     var body: some View {
         HStack(spacing: 12) {
@@ -37,6 +38,11 @@ struct TrackRow: View {
                 library.toggleFavorite(track)
                 toast.show(library.isFavorite(track) ? "Добавлено в избранное" : "Удалено из избранного", style: .success)
             }
+            if !library.playlists.isEmpty {
+                Button("Добавить в плейлист") {
+                    showAddToPlaylist = true
+                }
+            }
             if downloads.localFileURL(for: track) != nil {
                 Button("Удалить загрузку", role: .destructive) {
                     library.removeDownloaded(track)
@@ -44,6 +50,11 @@ struct TrackRow: View {
                 }
             }
             Button("Отмена", role: .cancel) {}
+        }
+        .sheet(isPresented: $showAddToPlaylist) {
+            AddToPlaylistSheet(track: track)
+                .presentationDetents([.medium, .large])
+                .presentationDragIndicator(.visible)
         }
     }
 
@@ -195,5 +206,94 @@ struct EqualizerBars: View {
         .onReceive(timer) { _ in
             heights = (0..<4).map { _ in CGFloat.random(in: 0.2...1.0) }
         }
+    }
+}
+
+// MARK: – Add To Playlist Sheet
+
+struct AddToPlaylistSheet: View {
+    let track: Track
+    @EnvironmentObject var library: LibraryStore
+    @EnvironmentObject var toast: ToastManager
+    @Environment(\.dismiss) var dismiss
+
+    var body: some View {
+        NavigationView {
+            ScrollView {
+                LazyVStack(spacing: 10) {
+                    ForEach(library.playlists) { pl in
+                        let already = library.isInPlaylist(track, playlist: pl)
+                        Button {
+                            if already {
+                                library.removeFromPlaylist(track, playlist: pl)
+                                toast.show("Удалено из «\(pl.name)»", style: .info, position: .top)
+                            } else {
+                                library.addToPlaylist(track, playlist: pl)
+                                toast.show("Добавлено в «\(pl.name)»", style: .success, position: .top)
+                            }
+                            SettingsStore.shared.triggerHaptic(.light)
+                        } label: {
+                            HStack(spacing: 14) {
+                                // Cover
+                                ZStack {
+                                    RoundedRectangle(cornerRadius: 8)
+                                        .fill(Theme.accentGlow)
+                                        .frame(width: 44, height: 44)
+                                    if let img = pl.coverImage {
+                                        Image(uiImage: img)
+                                            .resizable().scaledToFill()
+                                            .frame(width: 44, height: 44)
+                                            .clipShape(RoundedRectangle(cornerRadius: 8))
+                                    } else {
+                                        Image(systemName: "music.note.list")
+                                            .font(.system(size: 16))
+                                            .foregroundColor(Theme.accentBright)
+                                    }
+                                }
+
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text(pl.name)
+                                        .font(.system(size: 14, weight: .semibold))
+                                        .foregroundColor(Theme.textPrimary)
+                                        .lineLimit(1)
+                                    Text("\(pl.tracks.count) треков")
+                                        .font(.system(size: 12))
+                                        .foregroundColor(Theme.textSecondary)
+                                }
+
+                                Spacer()
+
+                                Image(systemName: already ? "checkmark.circle.fill" : "plus.circle")
+                                    .font(.system(size: 22))
+                                    .foregroundColor(already ? Theme.accentBright : Theme.textTertiary)
+                                    .animation(.spring(response: 0.25, dampingFraction: 0.6), value: already)
+                            }
+                            .padding(12)
+                            .background(Theme.surface)
+                            .cornerRadius(Theme.cornerMd)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: Theme.cornerMd)
+                                    .stroke(already ? Theme.accent : Theme.border, lineWidth: already ? 1 : 0.5)
+                            )
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+                .padding(.horizontal, 20)
+                .padding(.top, 8)
+                .padding(.bottom, 40)
+            }
+            .background(Theme.bg1)
+            .navigationTitle("Добавить в плейлист")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Готово") { dismiss() }
+                        .foregroundColor(Theme.accent)
+                        .font(.system(size: 15, weight: .semibold))
+                }
+            }
+        }
+        .preferredColorScheme(.dark)
     }
 }

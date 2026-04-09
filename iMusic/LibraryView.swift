@@ -302,7 +302,11 @@ struct PlaylistDetailSheet: View {
     @State var playlist: Playlist
     @EnvironmentObject var library: LibraryStore
     @EnvironmentObject var player: AudioPlayerManager
+    @EnvironmentObject var toast: ToastManager
     @Environment(\.dismiss) var dismiss
+
+    @State private var editMode = false
+    @State private var selected = Set<String>()
 
     var current: Playlist { library.playlists.first { $0.id == playlist.id } ?? playlist }
 
@@ -322,22 +326,80 @@ struct PlaylistDetailSheet: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .background(Theme.bg1)
                 } else {
-                    ScrollView {
-                        LazyVStack(spacing: 0) {
-                            ForEach(Array(current.tracks.enumerated()), id: \.element.id) { idx, track in
-                                TrackRow(track: track, isPlaying: player.currentTrack?.id == track.id,
-                                         queue: current.tracks, index: idx)
-                                    .swipeActions(edge: .trailing) {
-                                        Button(role: .destructive) {
-                                            library.removeFromPlaylist(track, playlist: current)
-                                        } label: { Label("Удалить", systemImage: "trash") }
+                    VStack(spacing: 0) {
+                        // Delete bar when in edit mode
+                        if editMode && !selected.isEmpty {
+                            HStack {
+                                Text("\(selected.count) выбрано")
+                                    .font(.system(size: 13, weight: .medium))
+                                    .foregroundColor(Theme.textSecondary)
+                                Spacer()
+                                Button {
+                                    for id in selected {
+                                        if let t = current.tracks.first(where: { $0.id == id }) {
+                                            library.removeFromPlaylist(t, playlist: current)
+                                        }
                                     }
-                                Divider().background(Theme.borderSubtle).padding(.leading, 78)
+                                    toast.show("Удалено \(selected.count) треков", style: .warning, position: .top)
+                                    SettingsStore.shared.triggerHaptic(.medium)
+                                    selected.removeAll()
+                                    if current.tracks.isEmpty { editMode = false }
+                                } label: {
+                                    Label("Удалить", systemImage: "trash")
+                                        .font(.system(size: 13, weight: .semibold))
+                                        .foregroundColor(.white)
+                                        .padding(.horizontal, 14)
+                                        .padding(.vertical, 7)
+                                        .background(Theme.danger)
+                                        .cornerRadius(10)
+                                }
                             }
+                            .padding(.horizontal, 20)
+                            .padding(.vertical, 10)
+                            .background(Theme.surface)
+                            .transition(.move(edge: .top).combined(with: .opacity))
                         }
-                        .padding(.bottom, 80)
+
+                        ScrollView {
+                            LazyVStack(spacing: 0) {
+                                ForEach(Array(current.tracks.enumerated()), id: \.element.id) { idx, track in
+                                    HStack(spacing: 0) {
+                                        if editMode {
+                                            Button {
+                                                if selected.contains(track.id) { selected.remove(track.id) }
+                                                else { selected.insert(track.id) }
+                                                SettingsStore.shared.triggerHaptic(.light)
+                                            } label: {
+                                                Image(systemName: selected.contains(track.id)
+                                                      ? "checkmark.circle.fill" : "circle")
+                                                    .font(.system(size: 22))
+                                                    .foregroundColor(selected.contains(track.id) ? Theme.accentBright : Theme.textTertiary)
+                                                    .frame(width: 44)
+                                                    .animation(.spring(response: 0.2, dampingFraction: 0.6), value: selected.contains(track.id))
+                                            }
+                                            .buttonStyle(.plain)
+                                            .transition(.move(edge: .leading).combined(with: .opacity))
+                                        }
+                                        TrackRow(track: track, isPlaying: player.currentTrack?.id == track.id,
+                                                 queue: current.tracks, index: idx)
+                                            .swipeActions(edge: .trailing) {
+                                                if !editMode {
+                                                    Button(role: .destructive) {
+                                                        library.removeFromPlaylist(track, playlist: current)
+                                                        toast.show("Удалено", style: .warning, position: .top)
+                                                    } label: { Label("Удалить", systemImage: "trash") }
+                                                }
+                                            }
+                                    }
+                                    .background(selected.contains(track.id) ? Theme.accentGlow : Color.clear)
+                                    Divider().background(Theme.borderSubtle).padding(.leading, editMode ? 44 + 78 : 78)
+                                }
+                            }
+                            .padding(.bottom, 80)
+                        }
+                        .background(Theme.bg1)
                     }
-                    .background(Theme.bg1)
+                    .animation(.spring(response: 0.3, dampingFraction: 0.8), value: editMode)
                 }
             }
             .navigationTitle(current.name)
@@ -346,6 +408,18 @@ struct PlaylistDetailSheet: View {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button("Закрыть") { dismiss() }
                         .foregroundColor(Theme.accent)
+                }
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    if !current.tracks.isEmpty {
+                        Button(editMode ? "Готово" : "Выбрать") {
+                            withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                                editMode.toggle()
+                                if !editMode { selected.removeAll() }
+                            }
+                        }
+                        .foregroundColor(editMode ? Theme.accentBright : Theme.accent)
+                        .font(.system(size: 15, weight: editMode ? .semibold : .regular))
+                    }
                 }
             }
         }

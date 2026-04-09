@@ -256,9 +256,7 @@ struct SearchView: View {
                 Text("Найди свою музыку")
                     .font(.system(size: 20, weight: .bold))
                     .foregroundColor(Theme.textPrimary)
-                Text("Поиск по двум источникам одновременно")
-                    .font(.system(size: 14))
-                    .foregroundColor(Theme.textTertiary)
+                
             }
             Spacer()
         }

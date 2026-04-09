@@ -1,10 +1,11 @@
 import SwiftUI
 
-struct PlayerView: View {
+struct PlayerSheet: View {
     @EnvironmentObject var player: AudioPlayerManager
     @EnvironmentObject var library: LibraryStore
     @EnvironmentObject var toast: ToastManager
     @ObservedObject var downloads = DownloadManager.shared
+    @Environment(\.dismiss) var dismiss
 
     @State private var isDragging = false
     @State private var dragProgress: Double = 0
@@ -15,40 +16,57 @@ struct PlayerView: View {
     var body: some View {
         GeometryReader { geo in
             VStack(spacing: 0) {
-                // Header
+                // Top bar
                 HStack {
-                    Text("Плеер")
-                        .font(.system(size: 28, weight: .bold))
-                        .foregroundColor(Theme.textPrimary)
+                    Button { dismiss() } label: {
+                        Image(systemName: "chevron.down")
+                            .font(.system(size: 18, weight: .semibold))
+                            .foregroundColor(Theme.textSecondary)
+                            .frame(width: 36, height: 36)
+                    }
                     Spacer()
-                    if player.currentTrack != nil {
-                        Button { showQueue = true } label: {
-                            Image(systemName: "list.bullet")
-                                .font(.system(size: 18))
-                                .foregroundColor(Theme.textSecondary)
-                                .frame(width: 36, height: 36)
-                                .background(Theme.surface)
-                                .clipShape(Circle())
-                        }
+                    VStack(spacing: 2) {
+                        Text("СЕЙЧАС ИГРАЕТ")
+                            .font(.system(size: 10, weight: .semibold))
+                            .foregroundColor(Theme.textTertiary)
+                            .tracking(1.5)
+                        Text(player.currentTrack?.artist ?? "")
+                            .font(.system(size: 13, weight: .medium))
+                            .foregroundColor(Theme.textSecondary)
+                            .lineLimit(1)
+                    }
+                    Spacer()
+                    Button { showQueue = true } label: {
+                        Image(systemName: "list.bullet")
+                            .font(.system(size: 18))
+                            .foregroundColor(Theme.textSecondary)
+                            .frame(width: 36, height: 36)
                     }
                 }
-                .padding(.horizontal, 24)
-                .padding(.top, 56)
-                .padding(.bottom, 12)
+                .padding(.horizontal, 20)
+                .padding(.top, 16)
+                .padding(.bottom, 8)
 
                 if player.currentTrack == nil {
-                    emptyPlayer
+                    Spacer()
+                    VStack(spacing: 16) {
+                        Image(systemName: "waveform")
+                            .font(.system(size: 50))
+                            .foregroundColor(Theme.accentDim)
+                        Text("Ничего не играет")
+                            .font(.system(size: 18, weight: .bold))
+                            .foregroundColor(Theme.textPrimary)
+                    }
+                    Spacer()
                 } else {
-                    // Fixed sizes budget:
-                    // header=96, trackInfo=48, viz=28, progress=42, controls=70, secondary=38, volume=18, gaps=~80
-                    // remaining goes to art
-                    let fixedH: CGFloat = 96 + 48 + 28 + 42 + 70 + 38 + 18 + 80
-                    let artSize = min(geo.size.height - fixedH, geo.size.width - 64)
+                    // Fixed budget: topbar≈60, trackInfo≈48, viz≈28, progress≈42, controls≈70, secondary≈36, volume≈18, gaps≈60
+                    let fixedH: CGFloat = 60 + 48 + 28 + 42 + 70 + 36 + 18 + 60
+                    let artSize = min(geo.size.height - fixedH, geo.size.width - 48)
 
-                    // Album art + swipe
+                    // Album art
                     ZStack {
                         RoundedRectangle(cornerRadius: 20)
-                            .fill(Theme.accentDim.opacity(0.18))
+                            .fill(Theme.accentDim.opacity(0.15))
                             .frame(width: artSize, height: artSize)
                             .blur(radius: 22)
                             .offset(y: 8)
@@ -61,7 +79,7 @@ struct PlayerView: View {
                             .overlay(RoundedRectangle(cornerRadius: 18).stroke(Theme.border, lineWidth: 0.5))
                             .scaleEffect(player.isPlaying ? 1.0 : 0.93)
                             .animation(.spring(response: 0.5, dampingFraction: 0.7), value: player.isPlaying)
-                            .shadow(color: .black.opacity(0.45), radius: 20, y: 10)
+                            .shadow(color: .black.opacity(0.4), radius: 20, y: 10)
 
                         if case .loading = player.playerState {
                             RoundedRectangle(cornerRadius: 18)
@@ -106,14 +124,13 @@ struct PlayerView: View {
                             }
                     )
 
-                    // Visualizer — fixed 28pt
+                    // Visualizer
                     WaveformVisualizer()
-                        .frame(height: 28)
+                        .frame(height: 24)
                         .padding(.horizontal, 24)
-                        .opacity(player.isPlaying ? 1 : 0.3)
+                        .padding(.top, 8)
+                        .opacity(player.isPlaying ? 1 : 0.25)
                         .animation(.easeInOut(duration: 0.3), value: player.isPlaying)
-
-                    Spacer(minLength: 0).frame(height: 10)
 
                     // Track info
                     HStack(alignment: .center, spacing: 12) {
@@ -144,31 +161,28 @@ struct PlayerView: View {
                         }
                     }
                     .padding(.horizontal, 24)
-
-                    Spacer(minLength: 0).frame(height: 10)
+                    .padding(.top, 8)
 
                     // Progress
                     progressSection
                         .padding(.horizontal, 24)
-
-                    Spacer(minLength: 0).frame(height: 14)
+                        .padding(.top, 10)
 
                     // Main controls
                     mainControls
                         .padding(.horizontal, 24)
-
-                    Spacer(minLength: 0).frame(height: 10)
+                        .padding(.top, 14)
 
                     // Secondary controls
                     secondaryControls
                         .padding(.horizontal, 24)
-
-                    Spacer(minLength: 0).frame(height: 10)
+                        .padding(.top, 8)
 
                     // Volume
                     volumeSection
                         .padding(.horizontal, 24)
-                        .padding(.bottom, 12)
+                        .padding(.top, 10)
+                        .padding(.bottom, 20)
                 }
             }
         }
@@ -177,21 +191,6 @@ struct PlayerView: View {
             QueueSheet()
                 .presentationDetents([.medium, .large])
                 .presentationDragIndicator(.visible)
-        }
-    }
-
-    private var emptyPlayer: some View {
-        VStack(spacing: 20) {
-            Spacer()
-            ZStack {
-                Circle().fill(Theme.accentGlow).frame(width: 120, height: 120)
-                Image(systemName: "waveform").font(.system(size: 50)).foregroundColor(Theme.accentDim)
-            }
-            VStack(spacing: 8) {
-                Text("Ничего не играет").font(.system(size: 20, weight: .bold)).foregroundColor(Theme.textPrimary)
-                Text("Найди трек во вкладке Поиск").font(.system(size: 14)).foregroundColor(Theme.textTertiary)
-            }
-            Spacer()
         }
     }
 
@@ -258,13 +257,13 @@ struct PlayerView: View {
                 ZStack {
                     Circle()
                         .fill(Theme.accent)
-                        .frame(width: 70, height: 70)
+                        .frame(width: 68, height: 68)
                         .shadow(color: Theme.shadowAccent, radius: 18, y: 6)
                     if case .loading = player.playerState {
                         ProgressView().progressViewStyle(CircularProgressViewStyle(tint: .white)).scaleEffect(1.1)
                     } else {
                         Image(systemName: player.isPlaying ? "pause.fill" : "play.fill")
-                            .font(.system(size: 28, weight: .bold))
+                            .font(.system(size: 26, weight: .bold))
                             .foregroundColor(.white)
                             .offset(x: player.isPlaying ? 0 : 2)
                     }
@@ -298,17 +297,15 @@ struct PlayerView: View {
                         .foregroundColor(player.isShuffled ? Theme.accentBright : Theme.textTertiary)
                     Circle().fill(player.isShuffled ? Theme.accentBright : Color.clear).frame(width: 4, height: 4)
                 }
-                .frame(width: 48, height: 38)
+                .frame(width: 48, height: 34)
             }
             .buttonStyle(ScaleButtonStyle())
 
             Spacer()
-
             Image(systemName: "airplayaudio")
                 .font(.system(size: 18))
                 .foregroundColor(Theme.textTertiary)
-                .frame(width: 40, height: 38)
-
+                .frame(width: 40, height: 34)
             Spacer()
 
             Button {
@@ -325,7 +322,7 @@ struct PlayerView: View {
                         .foregroundColor(repeatActive ? Theme.accentBright : Theme.textTertiary)
                     Circle().fill(repeatActive ? Theme.accentBright : Color.clear).frame(width: 4, height: 4)
                 }
-                .frame(width: 48, height: 38)
+                .frame(width: 48, height: 34)
             }
             .buttonStyle(ScaleButtonStyle())
         }

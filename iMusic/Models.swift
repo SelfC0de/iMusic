@@ -26,24 +26,21 @@ enum PlayerState {
 
 enum TabItem: Int, CaseIterable {
     case search = 0
-    case player = 1
-    case library = 2
-    case settings = 3
+    case library = 1
+    case settings = 2
 
     var title: String {
         switch self {
-        case .search: return "Поиск"
-        case .player: return "Плеер"
-        case .library: return "Библиотека"
+        case .search:   return "Поиск"
+        case .library:  return "Библиотека"
         case .settings: return "Настройки"
         }
     }
 
     var icon: String {
         switch self {
-        case .search: return "magnifyingglass"
-        case .player: return "waveform"
-        case .library: return "music.note.list"
+        case .search:   return "magnifyingglass"
+        case .library:  return "music.note.list"
         case .settings: return "gearshape"
         }
     }
@@ -59,17 +56,17 @@ struct ToastMessage: Identifiable {
         case info, success, error, warning
         var color: Color {
             switch self {
-            case .info: return Theme.accent
+            case .info:    return Theme.accent
             case .success: return Theme.success
-            case .error: return Theme.danger
+            case .error:   return Theme.danger
             case .warning: return Theme.warning
             }
         }
         var icon: String {
             switch self {
-            case .info: return "info.circle.fill"
+            case .info:    return "info.circle.fill"
             case .success: return "checkmark.circle.fill"
-            case .error: return "xmark.circle.fill"
+            case .error:   return "xmark.circle.fill"
             case .warning: return "exclamationmark.triangle.fill"
             }
         }

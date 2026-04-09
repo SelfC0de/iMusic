@@ -445,28 +445,44 @@ struct CreatePlaylistSheet: View {
                 .foregroundColor(Theme.textPrimary)
                 .padding(.top, 20)
 
-            // Cover picker
-            PhotosPicker(selection: $photosItem, matching: .images) {
-                ZStack {
-                    RoundedRectangle(cornerRadius: 14)
-                        .fill(Theme.accentGlow)
-                        .frame(width: 72, height: 72)
-                    if let img = coverImage {
-                        Image(uiImage: img)
-                            .resizable().scaledToFill()
-                            .frame(width: 72, height: 72)
-                            .clipShape(RoundedRectangle(cornerRadius: 14))
-                    } else {
-                        VStack(spacing: 4) {
-                            Image(systemName: "photo.badge.plus")
-                                .font(.system(size: 22))
-                                .foregroundColor(Theme.accentBright)
-                            Text("Обложка")
-                                .font(.system(size: 10))
-                                .foregroundColor(Theme.textTertiary)
+            // Cover picker — optional
+            VStack(spacing: 6) {
+                PhotosPicker(selection: $photosItem, matching: .images) {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 14)
+                            .fill(Theme.accentGlow)
+                            .frame(width: 80, height: 80)
+                        if let img = coverImage {
+                            Image(uiImage: img)
+                                .resizable().scaledToFill()
+                                .frame(width: 80, height: 80)
+                                .clipShape(RoundedRectangle(cornerRadius: 14))
+                            // Remove badge
+                            VStack { Spacer(); HStack { Spacer()
+                                Button {
+                                    coverImage = nil
+                                    photosItem = nil
+                                } label: {
+                                    Circle().fill(Theme.danger).frame(width: 22, height: 22)
+                                        .overlay(Image(systemName: "xmark").font(.system(size: 10, weight: .bold)).foregroundColor(.white))
+                                }
+                                .offset(x: 6, y: 6)
+                            }}
+                        } else {
+                            VStack(spacing: 4) {
+                                Image(systemName: "photo.badge.plus")
+                                    .font(.system(size: 24))
+                                    .foregroundColor(Theme.accentBright)
+                                Text("Добавить")
+                                    .font(.system(size: 10))
+                                    .foregroundColor(Theme.textTertiary)
+                            }
                         }
                     }
                 }
+                Text(coverImage == nil ? "Обложка необязательна" : "Нажми ✕ чтобы убрать")
+                    .font(.system(size: 11))
+                    .foregroundColor(Theme.textTertiary)
             }
             .onChange(of: photosItem, perform: { newItem in
                 guard let newItem else { return }

@@ -104,6 +104,8 @@ final class LibraryStore: ObservableObject {
         playlist.tracks.contains { $0.id == track.id }
     }
 
+    func savePlaylists() { save() }
+
     // MARK: – Persistence
     private func save() {
         if let d = try? JSONEncoder().encode(favorites)      { UserDefaults.standard.set(d, forKey: favKey) }

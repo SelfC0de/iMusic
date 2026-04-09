@@ -360,6 +360,8 @@ struct CreatePlaylistSheet: View {
     @EnvironmentObject var toast: ToastManager
     @Environment(\.dismiss) var dismiss
     @State private var name = ""
+    @State private var photosItem: PhotosPickerItem? = nil
+    @State private var coverImage: UIImage? = nil
     @FocusState private var focused: Bool
 
     var body: some View {
@@ -368,6 +370,39 @@ struct CreatePlaylistSheet: View {
                 .font(.system(size: 17, weight: .bold))
                 .foregroundColor(Theme.textPrimary)
                 .padding(.top, 20)
+
+            // Cover picker
+            PhotosPicker(selection: $photosItem, matching: .images) {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 14)
+                        .fill(Theme.accentGlow)
+                        .frame(width: 72, height: 72)
+                    if let img = coverImage {
+                        Image(uiImage: img)
+                            .resizable().scaledToFill()
+                            .frame(width: 72, height: 72)
+                            .clipShape(RoundedRectangle(cornerRadius: 14))
+                    } else {
+                        VStack(spacing: 4) {
+                            Image(systemName: "photo.badge.plus")
+                                .font(.system(size: 22))
+                                .foregroundColor(Theme.accentBright)
+                            Text("Обложка")
+                                .font(.system(size: 10))
+                                .foregroundColor(Theme.textTertiary)
+                        }
+                    }
+                }
+            }
+            .onChange(of: photosItem, perform: { newItem in
+                guard let newItem else { return }
+                Task {
+                    if let data = try? await newItem.loadTransferable(type: Data.self),
+                       let img = UIImage(data: data) {
+                        await MainActor.run { coverImage = img }
+                    }
+                }
+            })
 
             TextField("Название...", text: $name)
                 .font(.system(size: 16))
@@ -407,7 +442,10 @@ struct CreatePlaylistSheet: View {
 
     private func create() {
         guard !name.trimmed.isEmpty else { return }
-        library.createPlaylist(name: name)
+        var pl = Playlist(name: name)
+        if let img = coverImage { pl.coverImageData = img.jpegData(compressionQuality: 0.7) }
+        library.playlists.insert(pl, at: 0)
+        library.savePlaylists()
         toast.show("Плейлист создан", style: .success, position: .top)
         SettingsStore.shared.triggerHaptic(.medium)
         dismiss()
@@ -463,14 +501,15 @@ struct EditPlaylistSheet: View {
                     }}
                 }
             }
-            .onChange(of: photosItem) {
+            .onChange(of: photosItem, perform: { newItem in
+                guard let newItem else { return }
                 Task {
-                    if let data = try? await photosItem?.loadTransferable(type: Data.self),
+                    if let data = try? await newItem.loadTransferable(type: Data.self),
                        let img = UIImage(data: data) {
-                        coverImage = img
+                        await MainActor.run { coverImage = img }
                     }
                 }
-            }
+            })
 
             // Name field
             TextField("Название...", text: $name)

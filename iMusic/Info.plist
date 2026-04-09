@@ -20,19 +20,6 @@
     <string>1.0</string>
     <key>CFBundleVersion</key>
     <string>1</string>
-    <key>CFBundleIcons</key>
-    <dict>
-        <key>CFBundlePrimaryIcon</key>
-        <dict>
-            <key>CFBundleIconFiles</key>
-            <array>
-                <string>icon_60</string>
-                <string>icon_120</string>
-                <string>icon_180</string>
-            </array>
-            <key>UIPrerenderedIcon</key>
-            <false/>
-        </dict>
     </dict>
     <key>LSRequiresIPhoneOS</key>
     <true/>

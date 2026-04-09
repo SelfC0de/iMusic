@@ -1,0 +1,266 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		EB2F9E3E4735F28D9BAE60F0 /* iMusicApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B26D0442026A5EFC1963931 /* iMusicApp.swift */; };
+		2C1F04358354A71CBCAF1D70 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 098D8B4264C28A84D5EB4AF3 /* Theme.swift */; };
+		713BBA7A81CE4F9378E045EC /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = 39CA80833698C27DC5654D30 /* Models.swift */; };
+		5B7F8E0C8756F49E20E44B4C /* SearchService.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1F7251C0EA3F910F2D9C3A6 /* SearchService.swift */; };
+		969D9DBF323B9B31571F09FB /* AudioPlayerManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2C361B5B704767016AF97F4 /* AudioPlayerManager.swift */; };
+		ADB84623642AA22369408559 /* DownloadManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE365335194C68C30D58680F /* DownloadManager.swift */; };
+		3DC0DEDE4467B20549816E09 /* LibraryStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9965F3AB3E42DC25094548CD /* LibraryStore.swift */; };
+		257941E653A305199A733960 /* SettingsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE12C2C0D85110E192D0A273 /* SettingsStore.swift */; };
+		70A86E8496D79A45545E99E6 /* ToastManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 931B88131997DCF7AB94BC55 /* ToastManager.swift */; };
+		555F9AEA6681F92B5155F154 /* ImageCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 85BE1F07E5B26CD5C9641189 /* ImageCache.swift */; };
+		22526D8D373CC032828194F3 /* ToastOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5A49D46B8B6137778706654 /* ToastOverlay.swift */; };
+		6BFF39321698ABA70E1AD4D6 /* CustomTabBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AF585D27D1E4927FE36822E /* CustomTabBar.swift */; };
+		A60B560DB9779743BE91BFD3 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 90A5F95BFA21D6DAF7F5BBFF /* ContentView.swift */; };
+		F91DC56D7597920B3656AF6F /* TrackRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2342E23DF54B1C5FB65CAEF /* TrackRow.swift */; };
+		933548DF792B396B5C8F39D7 /* SearchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A29A45993DAD2D8FA1C1AFD /* SearchView.swift */; };
+		7A1A2E1990D7325B86EAC292 /* PlayerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61C0DE5F7D2F7DAA915694C5 /* PlayerView.swift */; };
+		212677A7E7071BE3F1CC73E9 /* LibraryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 266CB4CF9BDBB5214A5EE2B4 /* LibraryView.swift */; };
+		CA8391F7FBF15EF2A024D54B /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6ABAD276BE87914714CAD952 /* SettingsView.swift */; };
+		244238DCB0129E658E8B3690 /* icon_20.png in Resources */ = {isa = PBXBuildFile; fileRef = 611208DFF677D74FD3CEDE9A /* icon_20.png */; };
+		AD11DBA481E3DFD6B6781003 /* icon_29.png in Resources */ = {isa = PBXBuildFile; fileRef = 5FE87899395951C731D59AF1 /* icon_29.png */; };
+		8176B355252B00DC6F9E9933 /* icon_40.png in Resources */ = {isa = PBXBuildFile; fileRef = F872E33568F3A8321FB6520C /* icon_40.png */; };
+		09ADF4CB4548154C9A6E1A42 /* icon_58.png in Resources */ = {isa = PBXBuildFile; fileRef = E168930FA4E33088793240E9 /* icon_58.png */; };
+		571B929B8781191BEAFCA894 /* icon_60.png in Resources */ = {isa = PBXBuildFile; fileRef = AABA7DA8AF64886C3911571B /* icon_60.png */; };
+		6BD5EA5A3B345FBBF87481B0 /* icon_76.png in Resources */ = {isa = PBXBuildFile; fileRef = D03F4BF08A8A27DC52F94AC2 /* icon_76.png */; };
+		2B749BF556FC395074A1A712 /* icon_80.png in Resources */ = {isa = PBXBuildFile; fileRef = A807C8D14931992AD3FCF7BF /* icon_80.png */; };
+		1F18006EE313F06F359F7348 /* icon_87.png in Resources */ = {isa = PBXBuildFile; fileRef = E6B5C6B91E76C290BD6F0693 /* icon_87.png */; };
+		51C7085C6008D66C48E0BB7F /* icon_120.png in Resources */ = {isa = PBXBuildFile; fileRef = 03931BF970F9570F009D0A85 /* icon_120.png */; };
+		B6A699F3AAFCBF1C6D1AC09F /* icon_152.png in Resources */ = {isa = PBXBuildFile; fileRef = 91D26BFAABA1C85620C89DD8 /* icon_152.png */; };
+		5FA7473589DE942DA1EE9371 /* icon_167.png in Resources */ = {isa = PBXBuildFile; fileRef = 7E70AE0462F2CD9FCBADAD83 /* icon_167.png */; };
+		6FB5AF59D189B527BA0F5C73 /* icon_180.png in Resources */ = {isa = PBXBuildFile; fileRef = D970FC1BB24B6197971F8A8A /* icon_180.png */; };
+		DEAED086A24EBB5ABD066479 /* icon_1024.png in Resources */ = {isa = PBXBuildFile; fileRef = F73B5DCA25FF807A014568B9 /* icon_1024.png */; };
+		0EF5B9B64B9DF05E35838878 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 49C36F8A172758EFBB8972F1 /* Assets.xcassets */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		DB80DD5FECA3321619BF1155 /* iMusic.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = iMusic.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		EF491A30486EFBB8A725ACC7 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		49C36F8A172758EFBB8972F1 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		3B26D0442026A5EFC1963931 /* iMusicApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iMusicApp.swift; sourceTree = "<group>"; };
+		098D8B4264C28A84D5EB4AF3 /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
+		39CA80833698C27DC5654D30 /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
+		E1F7251C0EA3F910F2D9C3A6 /* SearchService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchService.swift; sourceTree = "<group>"; };
+		E2C361B5B704767016AF97F4 /* AudioPlayerManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioPlayerManager.swift; sourceTree = "<group>"; };
+		DE365335194C68C30D58680F /* DownloadManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DownloadManager.swift; sourceTree = "<group>"; };
+		9965F3AB3E42DC25094548CD /* LibraryStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryStore.swift; sourceTree = "<group>"; };
+		BE12C2C0D85110E192D0A273 /* SettingsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsStore.swift; sourceTree = "<group>"; };
+		931B88131997DCF7AB94BC55 /* ToastManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToastManager.swift; sourceTree = "<group>"; };
+		85BE1F07E5B26CD5C9641189 /* ImageCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageCache.swift; sourceTree = "<group>"; };
+		B5A49D46B8B6137778706654 /* ToastOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToastOverlay.swift; sourceTree = "<group>"; };
+		2AF585D27D1E4927FE36822E /* CustomTabBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomTabBar.swift; sourceTree = "<group>"; };
+		90A5F95BFA21D6DAF7F5BBFF /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		A2342E23DF54B1C5FB65CAEF /* TrackRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackRow.swift; sourceTree = "<group>"; };
+		8A29A45993DAD2D8FA1C1AFD /* SearchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchView.swift; sourceTree = "<group>"; };
+		61C0DE5F7D2F7DAA915694C5 /* PlayerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerView.swift; sourceTree = "<group>"; };
+		266CB4CF9BDBB5214A5EE2B4 /* LibraryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryView.swift; sourceTree = "<group>"; };
+		6ABAD276BE87914714CAD952 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		611208DFF677D74FD3CEDE9A /* icon_20.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = icon_20.png; sourceTree = "<group>"; };
+		5FE87899395951C731D59AF1 /* icon_29.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = icon_29.png; sourceTree = "<group>"; };
+		F872E33568F3A8321FB6520C /* icon_40.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = icon_40.png; sourceTree = "<group>"; };
+		E168930FA4E33088793240E9 /* icon_58.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = icon_58.png; sourceTree = "<group>"; };
+		AABA7DA8AF64886C3911571B /* icon_60.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = icon_60.png; sourceTree = "<group>"; };
+		D03F4BF08A8A27DC52F94AC2 /* icon_76.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = icon_76.png; sourceTree = "<group>"; };
+		A807C8D14931992AD3FCF7BF /* icon_80.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = icon_80.png; sourceTree = "<group>"; };
+		E6B5C6B91E76C290BD6F0693 /* icon_87.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = icon_87.png; sourceTree = "<group>"; };
+		03931BF970F9570F009D0A85 /* icon_120.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = icon_120.png; sourceTree = "<group>"; };
+		91D26BFAABA1C85620C89DD8 /* icon_152.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = icon_152.png; sourceTree = "<group>"; };
+		7E70AE0462F2CD9FCBADAD83 /* icon_167.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = icon_167.png; sourceTree = "<group>"; };
+		D970FC1BB24B6197971F8A8A /* icon_180.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = icon_180.png; sourceTree = "<group>"; };
+		F73B5DCA25FF807A014568B9 /* icon_1024.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = icon_1024.png; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		F27A7D5395347F1C6D0BE8E5 = {isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		DBDFB1416AEDBE1FE0084EC4 = {isa = PBXGroup; children = (ACF583CB3D79B3CB2BF63C3B /* iMusic */, 2CA8023C056ACC28E4E6E503 /* Products */, ); sourceTree = "<group>"; };
+		2CA8023C056ACC28E4E6E503 /* Products */ = {isa = PBXGroup; children = (DB80DD5FECA3321619BF1155 /* iMusic.app */,); name = Products; sourceTree = "<group>"; };
+		ACF583CB3D79B3CB2BF63C3B /* iMusic */ = {
+			isa = PBXGroup;
+			children = (
+				3B26D0442026A5EFC1963931 /* iMusicApp.swift */,
+				098D8B4264C28A84D5EB4AF3 /* Theme.swift */,
+				39CA80833698C27DC5654D30 /* Models.swift */,
+				E1F7251C0EA3F910F2D9C3A6 /* SearchService.swift */,
+				E2C361B5B704767016AF97F4 /* AudioPlayerManager.swift */,
+				DE365335194C68C30D58680F /* DownloadManager.swift */,
+				9965F3AB3E42DC25094548CD /* LibraryStore.swift */,
+				BE12C2C0D85110E192D0A273 /* SettingsStore.swift */,
+				931B88131997DCF7AB94BC55 /* ToastManager.swift */,
+				85BE1F07E5B26CD5C9641189 /* ImageCache.swift */,
+				B5A49D46B8B6137778706654 /* ToastOverlay.swift */,
+				2AF585D27D1E4927FE36822E /* CustomTabBar.swift */,
+				90A5F95BFA21D6DAF7F5BBFF /* ContentView.swift */,
+				A2342E23DF54B1C5FB65CAEF /* TrackRow.swift */,
+				8A29A45993DAD2D8FA1C1AFD /* SearchView.swift */,
+				61C0DE5F7D2F7DAA915694C5 /* PlayerView.swift */,
+				266CB4CF9BDBB5214A5EE2B4 /* LibraryView.swift */,
+				6ABAD276BE87914714CAD952 /* SettingsView.swift */,
+				611208DFF677D74FD3CEDE9A /* icon_20.png */,
+				5FE87899395951C731D59AF1 /* icon_29.png */,
+				F872E33568F3A8321FB6520C /* icon_40.png */,
+				E168930FA4E33088793240E9 /* icon_58.png */,
+				AABA7DA8AF64886C3911571B /* icon_60.png */,
+				D03F4BF08A8A27DC52F94AC2 /* icon_76.png */,
+				A807C8D14931992AD3FCF7BF /* icon_80.png */,
+				E6B5C6B91E76C290BD6F0693 /* icon_87.png */,
+				03931BF970F9570F009D0A85 /* icon_120.png */,
+				91D26BFAABA1C85620C89DD8 /* icon_152.png */,
+				7E70AE0462F2CD9FCBADAD83 /* icon_167.png */,
+				D970FC1BB24B6197971F8A8A /* icon_180.png */,
+				F73B5DCA25FF807A014568B9 /* icon_1024.png */,
+				49C36F8A172758EFBB8972F1 /* Assets.xcassets */,
+				EF491A30486EFBB8A725ACC7 /* Info.plist */,
+			);
+			path = iMusic;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		B2D3A9D66DE5309245453A4F /* iMusic */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 6BBD833D9CEB8336351F1449;
+			buildPhases = (174F5B21A81AE70ACFB5ED64,D8814FF413193258A2B6CF17,F27A7D5395347F1C6D0BE8E5,);
+			buildRules = ();
+			dependencies = ();
+			name = iMusic;
+			packageProductDependencies = ();
+			productName = iMusic;
+			productReference = DB80DD5FECA3321619BF1155;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		40B42B4CDB667A4DED7B3859 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {BuildIndependentTargetsInParallel = 1; LastSwiftUpdateCheck = 1600; LastUpgradeCheck = 1600;};
+			buildConfigurationList = 1EAEF44D06CBE9A113A817BA;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = ru;
+			hasScannedForEncodings = 0;
+			knownRegions = (en, Base, ru,);
+			mainGroup = DBDFB1416AEDBE1FE0084EC4;
+			packageReferences = ();
+			productRefGroup = 2CA8023C056ACC28E4E6E503;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (B2D3A9D66DE5309245453A4F,);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		D8814FF413193258A2B6CF17 = {isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (244238DCB0129E658E8B3690,AD11DBA481E3DFD6B6781003,8176B355252B00DC6F9E9933,09ADF4CB4548154C9A6E1A42,571B929B8781191BEAFCA894,6BD5EA5A3B345FBBF87481B0,2B749BF556FC395074A1A712,1F18006EE313F06F359F7348,51C7085C6008D66C48E0BB7F,B6A699F3AAFCBF1C6D1AC09F,5FA7473589DE942DA1EE9371,6FB5AF59D189B527BA0F5C73,DEAED086A24EBB5ABD066479,0EF5B9B64B9DF05E35838878,); runOnlyForDeploymentPostprocessing = 0; };
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		174F5B21A81AE70ACFB5ED64 = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (EB2F9E3E4735F28D9BAE60F0,2C1F04358354A71CBCAF1D70,713BBA7A81CE4F9378E045EC,5B7F8E0C8756F49E20E44B4C,969D9DBF323B9B31571F09FB,ADB84623642AA22369408559,3DC0DEDE4467B20549816E09,257941E653A305199A733960,70A86E8496D79A45545E99E6,555F9AEA6681F92B5155F154,22526D8D373CC032828194F3,6BFF39321698ABA70E1AD4D6,A60B560DB9779743BE91BFD3,F91DC56D7597920B3656AF6F,933548DF792B396B5C8F39D7,7A1A2E1990D7325B86EAC292,212677A7E7071BE3F1CC73E9,CA8391F7FBF15EF2A024D54B,); runOnlyForDeploymentPostprocessing = 0; };
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+
+		404DEF0EB2825CA829B37BE0 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+
+		591AE7AEE7455471AE128C97 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		DF94EB639A84006500ABEE9B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_IDENTITY = "";
+				CODE_SIGNING_ALLOWED = NO;
+				CODE_SIGNING_REQUIRED = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = iMusic/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LE_SWIFT_VERSION = 5.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.selfcode.imusic;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				ASSTCATALOG_COMPILER_APPICON_NAME = AppIcon;
+			};
+			name = Debug;
+		};
+		EB7A0773959BE8DC9575F4D1 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_IDENTITY = "";
+				CODE_SIGNING_ALLOWED = NO;
+				CODE_SIGNING_REQUIRED = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = iMusic/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LE_SWIFT_VERSION = 5.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.selfcode.imusic;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				ASSTCATALOG_COMPILER_APPICON_NAME = AppIcon;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		1EAEF44D06CBE9A113A817BA /* Build configuration list for PBXProject "iMusic" */ = {isa = XCConfigurationList; buildConfigurations = (404DEF0EB2825CA829B37BE0,591AE7AEE7455471AE128C97,); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
+		6BBD833D9CEB8336351F1449 /* Build configuration list for PBXNativeTarget "iMusic" */ = {isa = XCConfigurationList; buildConfigurations = (DF94EB639A84006500ABEE9B,EB7A0773959BE8DC9575F4D1,); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
+/* End XCConfigurationList section */
+
+	};
+	rootObject = 40B42B4CDB667A4DED7B3859;
+}

@@ -1,5 +1,4 @@
 import SwiftUI
-import AVFoundation
 
 struct PlayerView: View {
     @EnvironmentObject var player: AudioPlayerManager
@@ -12,41 +11,122 @@ struct PlayerView: View {
     @State private var showQueue = false
 
     var body: some View {
-        VStack(spacing: 0) {
-            headerRow
-                .padding(.horizontal, 24)
-
-            if player.currentTrack == nil {
-                emptyPlayer
-            } else {
-                ScrollView(showsIndicators: false) {
-                    VStack(spacing: 0) {
-                        albumArt
-                            .padding(.top, 12)
-                            .padding(.horizontal, 24)
-
-                        trackInfoRow
-                            .padding(.horizontal, 24)
-                            .padding(.top, 24)
-
-                        progressSection
-                            .padding(.horizontal, 24)
-                            .padding(.top, 20)
-
-                        mainControls
-                            .padding(.horizontal, 24)
-                            .padding(.top, 28)
-
-                        secondaryControls
-                            .padding(.horizontal, 24)
-                            .padding(.top, 24)
-
-                        volumeSection
-                            .padding(.horizontal, 24)
-                            .padding(.top, 24)
-
-                        Spacer().frame(height: 140)
+        GeometryReader { geo in
+            VStack(spacing: 0) {
+                // Header
+                HStack {
+                    Text("Плеер")
+                        .font(.system(size: 28, weight: .bold))
+                        .foregroundColor(Theme.textPrimary)
+                    Spacer()
+                    if player.currentTrack != nil {
+                        Button { showQueue = true } label: {
+                            Image(systemName: "list.bullet")
+                                .font(.system(size: 18))
+                                .foregroundColor(Theme.textSecondary)
+                                .frame(width: 36, height: 36)
+                                .background(Theme.surface)
+                                .clipShape(Circle())
+                        }
                     }
+                }
+                .padding(.horizontal, 24)
+                .padding(.top, 56)
+                .padding(.bottom, 12)
+
+                if player.currentTrack == nil {
+                    emptyPlayer
+                } else {
+                    // Available height = total - header - tabbar - miniplayer
+                    let available = geo.size.height - 56 - 12 - 28 - 180
+                    let artSize = min(available * 0.42, geo.size.width - 80)
+
+                    // Album art
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 20)
+                            .fill(Theme.accentDim.opacity(0.18))
+                            .frame(width: artSize, height: artSize)
+                            .blur(radius: 24)
+                            .offset(y: 8)
+                            .scaleEffect(player.isPlaying ? 1.05 : 0.9)
+                            .animation(.easeInOut(duration: 2.0).repeatForever(autoreverses: true), value: player.isPlaying)
+
+                        CachedAsyncImage(url: player.currentTrack?.coverURL ?? "")
+                            .frame(width: artSize, height: artSize)
+                            .clipShape(RoundedRectangle(cornerRadius: 18))
+                            .overlay(RoundedRectangle(cornerRadius: 18).stroke(Theme.border, lineWidth: 0.5))
+                            .scaleEffect(player.isPlaying ? 1.0 : 0.93)
+                            .animation(.spring(response: 0.5, dampingFraction: 0.7), value: player.isPlaying)
+                            .shadow(color: .black.opacity(0.45), radius: 20, y: 10)
+
+                        if case .loading = player.playerState {
+                            RoundedRectangle(cornerRadius: 18)
+                                .fill(Color.black.opacity(0.5))
+                                .frame(width: artSize, height: artSize)
+                            ProgressView()
+                                .progressViewStyle(CircularProgressViewStyle(tint: Theme.accentBright))
+                                .scaleEffect(1.4)
+                        }
+                    }
+                    .frame(width: artSize, height: artSize)
+
+                    Spacer(minLength: 16)
+
+                    // Track info
+                    HStack(alignment: .center, spacing: 12) {
+                        VStack(alignment: .leading, spacing: 3) {
+                            Text(player.currentTrack?.title ?? "")
+                                .font(.system(size: 19, weight: .bold))
+                                .foregroundColor(Theme.textPrimary)
+                                .lineLimit(1)
+                            Text(player.currentTrack?.artist ?? "")
+                                .font(.system(size: 14))
+                                .foregroundColor(Theme.textSecondary)
+                                .lineLimit(1)
+                        }
+                        Spacer()
+                        CircularDownloadButton(track: player.currentTrack)
+                        let fav = player.currentTrack.map { library.isFavorite($0) } ?? false
+                        Button {
+                            guard let track = player.currentTrack else { return }
+                            library.toggleFavorite(track)
+                            toast.show(library.isFavorite(track) ? "Добавлено" : "Удалено", style: .success, position: .slideLeft)
+                            SettingsStore.shared.triggerHaptic(.medium)
+                        } label: {
+                            Image(systemName: fav ? "heart.fill" : "heart")
+                                .font(.system(size: 22))
+                                .foregroundColor(fav ? Theme.accentBright : Theme.textTertiary)
+                                .scaleEffect(fav ? 1.1 : 1.0)
+                                .animation(.spring(response: 0.25, dampingFraction: 0.5), value: fav)
+                        }
+                    }
+                    .padding(.horizontal, 24)
+
+                    Spacer(minLength: 14)
+
+                    // Progress
+                    progressSection
+                        .padding(.horizontal, 24)
+
+                    Spacer(minLength: 18)
+
+                    // Main controls
+                    mainControls
+                        .padding(.horizontal, 24)
+
+                    Spacer(minLength: 14)
+
+                    // Secondary controls
+                    secondaryControls
+                        .padding(.horizontal, 24)
+
+                    Spacer(minLength: 14)
+
+                    // Volume
+                    volumeSection
+                        .padding(.horizontal, 24)
+
+                    Spacer(minLength: 8)
                 }
             }
         }
@@ -58,113 +138,23 @@ struct PlayerView: View {
         }
     }
 
-    private var headerRow: some View {
-        HStack {
-            Text("Плеер")
-                .font(.system(size: 28, weight: .bold))
-                .foregroundColor(Theme.textPrimary)
-            Spacer()
-            if player.currentTrack != nil {
-                Button { showQueue = true } label: {
-                    Image(systemName: "list.bullet")
-                        .font(.system(size: 18, weight: .medium))
-                        .foregroundColor(Theme.textSecondary)
-                        .frame(width: 36, height: 36)
-                        .background(Theme.surface)
-                        .clipShape(Circle())
-                }
-            }
-        }
-        .padding(.top, 56)
-        .padding(.bottom, 8)
-    }
-
     private var emptyPlayer: some View {
         VStack(spacing: 20) {
             Spacer()
             ZStack {
-                Circle().fill(Theme.accentGlow).frame(width: 130, height: 130)
-                Image(systemName: "waveform")
-                    .font(.system(size: 54))
-                    .foregroundColor(Theme.accentDim)
+                Circle().fill(Theme.accentGlow).frame(width: 120, height: 120)
+                Image(systemName: "waveform").font(.system(size: 50)).foregroundColor(Theme.accentDim)
             }
             VStack(spacing: 8) {
-                Text("Ничего не играет")
-                    .font(.system(size: 20, weight: .bold))
-                    .foregroundColor(Theme.textPrimary)
-                Text("Найди трек во вкладке Поиск")
-                    .font(.system(size: 14))
-                    .foregroundColor(Theme.textTertiary)
+                Text("Ничего не играет").font(.system(size: 20, weight: .bold)).foregroundColor(Theme.textPrimary)
+                Text("Найди трек во вкладке Поиск").font(.system(size: 14)).foregroundColor(Theme.textTertiary)
             }
             Spacer()
-        }
-    }
-
-    private var albumArt: some View {
-        let size = UIScreen.main.bounds.width - 80
-        return ZStack {
-            RoundedRectangle(cornerRadius: 24)
-                .fill(Theme.accentDim.opacity(0.22))
-                .frame(width: size, height: size)
-                .blur(radius: 30)
-                .offset(y: 10)
-                .scaleEffect(player.isPlaying ? 1.06 : 0.9)
-                .animation(.easeInOut(duration: 2.0).repeatForever(autoreverses: true), value: player.isPlaying)
-
-            CachedAsyncImage(url: player.currentTrack?.coverURL ?? "")
-                .frame(width: size, height: size)
-                .clipShape(RoundedRectangle(cornerRadius: 22))
-                .overlay(RoundedRectangle(cornerRadius: 22).stroke(Theme.border, lineWidth: 0.5))
-                .scaleEffect(player.isPlaying ? 1.0 : 0.92)
-                .animation(.spring(response: 0.5, dampingFraction: 0.7), value: player.isPlaying)
-                .shadow(color: .black.opacity(0.5), radius: 24, y: 12)
-
-            if case .loading = player.playerState {
-                RoundedRectangle(cornerRadius: 22)
-                    .fill(Color.black.opacity(0.55))
-                    .frame(width: size, height: size)
-                ProgressView()
-                    .progressViewStyle(CircularProgressViewStyle(tint: Theme.accentBright))
-                    .scaleEffect(1.5)
-            }
-        }
-        .frame(width: size, height: size)
-    }
-
-    private var trackInfoRow: some View {
-        HStack(alignment: .center, spacing: 14) {
-            VStack(alignment: .leading, spacing: 5) {
-                Text(player.currentTrack?.title ?? "")
-                    .font(.system(size: 20, weight: .bold))
-                    .foregroundColor(Theme.textPrimary)
-                    .lineLimit(1)
-                Text(player.currentTrack?.artist ?? "")
-                    .font(.system(size: 15))
-                    .foregroundColor(Theme.textSecondary)
-                    .lineLimit(1)
-            }
-            Spacer()
-
-            CircularDownloadButton(track: player.currentTrack)
-
-            let fav = player.currentTrack.map { library.isFavorite($0) } ?? false
-            Button {
-                guard let track = player.currentTrack else { return }
-                library.toggleFavorite(track)
-                toast.show(library.isFavorite(track) ? "Добавлено в избранное" : "Удалено", style: .success, position: .slideLeft)
-                SettingsStore.shared.triggerHaptic(.medium)
-            } label: {
-                Image(systemName: fav ? "heart.fill" : "heart")
-                    .font(.system(size: 22))
-                    .foregroundColor(fav ? Theme.accentBright : Theme.textTertiary)
-                    .scaleEffect(fav ? 1.1 : 1.0)
-                    .animation(.spring(response: 0.25, dampingFraction: 0.5), value: fav)
-            }
         }
     }
 
     private var progressSection: some View {
-        VStack(spacing: 6) {
+        VStack(spacing: 5) {
             GeometryReader { geo in
                 ZStack(alignment: .leading) {
                     Capsule().fill(Theme.bg3).frame(height: 5)
@@ -173,12 +163,12 @@ struct PlayerView: View {
                         .frame(width: max(0, geo.size.width * CGFloat(isDragging ? dragProgress : player.progress)), height: 5)
                     Circle()
                         .fill(Theme.accentBright)
-                        .frame(width: isDragging ? 18 : 13, height: isDragging ? 18 : 13)
-                        .shadow(color: Theme.accent.opacity(0.6), radius: isDragging ? 8 : 3)
-                        .offset(x: max(0, geo.size.width * CGFloat(isDragging ? dragProgress : player.progress) - (isDragging ? 9 : 6.5)))
+                        .frame(width: isDragging ? 17 : 12, height: isDragging ? 17 : 12)
+                        .shadow(color: Theme.accent.opacity(0.6), radius: isDragging ? 7 : 3)
+                        .offset(x: max(0, geo.size.width * CGFloat(isDragging ? dragProgress : player.progress) - (isDragging ? 8.5 : 6)))
                         .animation(.spring(response: 0.2, dampingFraction: 0.75), value: isDragging)
                 }
-                .frame(height: 24)
+                .frame(height: 22)
                 .contentShape(Rectangle())
                 .gesture(DragGesture(minimumDistance: 0)
                     .onChanged { v in
@@ -192,7 +182,7 @@ struct PlayerView: View {
                     }
                 )
             }
-            .frame(height: 24)
+            .frame(height: 22)
 
             HStack {
                 Text(player.formattedTime(isDragging ? dragProgress * player.duration : player.currentTime))
@@ -213,9 +203,9 @@ struct PlayerView: View {
                 SettingsStore.shared.triggerHaptic(.medium)
             } label: {
                 Image(systemName: "backward.fill")
-                    .font(.system(size: 30, weight: .bold))
+                    .font(.system(size: 28, weight: .bold))
                     .foregroundColor(Theme.textPrimary)
-                    .frame(maxWidth: .infinity, minHeight: 60)
+                    .frame(maxWidth: .infinity, minHeight: 54)
             }
             .buttonStyle(ScaleButtonStyle())
 
@@ -226,15 +216,13 @@ struct PlayerView: View {
                 ZStack {
                     Circle()
                         .fill(Theme.accent)
-                        .frame(width: 76, height: 76)
-                        .shadow(color: Theme.shadowAccent, radius: 22, y: 8)
+                        .frame(width: 70, height: 70)
+                        .shadow(color: Theme.shadowAccent, radius: 18, y: 6)
                     if case .loading = player.playerState {
-                        ProgressView()
-                            .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                            .scaleEffect(1.2)
+                        ProgressView().progressViewStyle(CircularProgressViewStyle(tint: .white)).scaleEffect(1.1)
                     } else {
                         Image(systemName: player.isPlaying ? "pause.fill" : "play.fill")
-                            .font(.system(size: 30, weight: .bold))
+                            .font(.system(size: 28, weight: .bold))
                             .foregroundColor(.white)
                             .offset(x: player.isPlaying ? 0 : 2)
                     }
@@ -247,9 +235,9 @@ struct PlayerView: View {
                 SettingsStore.shared.triggerHaptic(.medium)
             } label: {
                 Image(systemName: "forward.fill")
-                    .font(.system(size: 30, weight: .bold))
+                    .font(.system(size: 28, weight: .bold))
                     .foregroundColor(Theme.textPrimary)
-                    .frame(maxWidth: .infinity, minHeight: 60)
+                    .frame(maxWidth: .infinity, minHeight: 54)
             }
             .buttonStyle(ScaleButtonStyle())
         }
@@ -260,147 +248,95 @@ struct PlayerView: View {
             Button {
                 player.isShuffled.toggle()
                 SettingsStore.shared.triggerHaptic(.light)
-                toast.show(player.isShuffled ? "Перемешать: вкл" : "Перемешать: выкл", style: .info)
+                toast.show(player.isShuffled ? "Перемешать: вкл" : "Выкл", style: .info)
             } label: {
-                VStack(spacing: 4) {
+                VStack(spacing: 3) {
                     Image(systemName: "shuffle")
-                        .font(.system(size: 20, weight: .medium))
+                        .font(.system(size: 18, weight: .medium))
                         .foregroundColor(player.isShuffled ? Theme.accentBright : Theme.textTertiary)
-                    Circle()
-                        .fill(player.isShuffled ? Theme.accentBright : Color.clear)
-                        .frame(width: 5, height: 5)
+                    Circle().fill(player.isShuffled ? Theme.accentBright : Color.clear).frame(width: 4, height: 4)
                 }
-                .frame(width: 52, height: 46)
+                .frame(width: 48, height: 38)
             }
             .buttonStyle(ScaleButtonStyle())
 
             Spacer()
 
             Image(systemName: "airplayaudio")
-                .font(.system(size: 20))
+                .font(.system(size: 18))
                 .foregroundColor(Theme.textTertiary)
-                .frame(width: 44, height: 44)
+                .frame(width: 40, height: 38)
 
             Spacer()
 
             Button {
                 switch player.repeatMode {
                 case .none: player.repeatMode = .all
-                case .all: player.repeatMode = .one
-                case .one: player.repeatMode = .none
+                case .all:  player.repeatMode = .one
+                case .one:  player.repeatMode = .none
                 }
                 SettingsStore.shared.triggerHaptic(.light)
-                let label: String
-                switch player.repeatMode {
-                case .none: label = "Повтор: выкл"
-                case .one: label = "Повтор: один"
-                case .all: label = "Повтор: все"
-                }
-                toast.show(label, style: .info)
             } label: {
-                VStack(spacing: 4) {
+                VStack(spacing: 3) {
                     Image(systemName: repeatIcon)
-                        .font(.system(size: 20, weight: .medium))
+                        .font(.system(size: 18, weight: .medium))
                         .foregroundColor(repeatActive ? Theme.accentBright : Theme.textTertiary)
-                    Circle()
-                        .fill(repeatActive ? Theme.accentBright : Color.clear)
-                        .frame(width: 5, height: 5)
+                    Circle().fill(repeatActive ? Theme.accentBright : Color.clear).frame(width: 4, height: 4)
                 }
-                .frame(width: 52, height: 46)
+                .frame(width: 48, height: 38)
             }
             .buttonStyle(ScaleButtonStyle())
         }
     }
 
     private var volumeSection: some View {
-        HStack(spacing: 12) {
-            Image(systemName: "speaker.fill")
-                .font(.system(size: 13))
-                .foregroundColor(Theme.textTertiary)
-                .frame(width: 18)
-
+        HStack(spacing: 10) {
+            Image(systemName: "speaker.fill").font(.system(size: 12)).foregroundColor(Theme.textTertiary).frame(width: 16)
             GeometryReader { geo in
                 ZStack(alignment: .leading) {
                     Capsule().fill(Theme.bg3).frame(height: 4)
-                    Capsule()
-                        .fill(Theme.accent)
-                        .frame(width: geo.size.width * CGFloat(player.volume), height: 4)
+                    Capsule().fill(Theme.accent).frame(width: geo.size.width * CGFloat(player.volume), height: 4)
                     Circle()
                         .fill(.white)
                         .frame(width: 14, height: 14)
                         .shadow(color: .black.opacity(0.3), radius: 3)
                         .offset(x: max(0, geo.size.width * CGFloat(player.volume) - 7))
                 }
-                .frame(height: 20)
+                .frame(height: 18)
                 .contentShape(Rectangle())
                 .gesture(DragGesture(minimumDistance: 0)
-                    .onChanged { v in
-                        player.setVolume(Float(min(max(v.location.x / geo.size.width, 0), 1)))
-                    }
+                    .onChanged { v in player.setVolume(Float(min(max(v.location.x / geo.size.width, 0), 1))) }
                 )
             }
-            .frame(height: 20)
-
-            Image(systemName: "speaker.wave.3.fill")
-                .font(.system(size: 13))
-                .foregroundColor(Theme.textTertiary)
-                .frame(width: 22)
+            .frame(height: 18)
+            Image(systemName: "speaker.wave.3.fill").font(.system(size: 12)).foregroundColor(Theme.textTertiary).frame(width: 20)
         }
     }
 
     private var repeatIcon: String {
-        switch player.repeatMode {
-        case .none: return "repeat"
-        case .one: return "repeat.1"
-        case .all: return "repeat"
-        }
+        switch player.repeatMode { case .none: return "repeat"; case .one: return "repeat.1"; case .all: return "repeat" }
     }
     private var repeatActive: Bool {
-        if case .none = player.repeatMode { return false }
-        return true
+        if case .none = player.repeatMode { return false }; return true
     }
 }
-
-// MARK: – Scale Button Style
-
-struct ScaleButtonStyle: ButtonStyle {
-    var scale: CGFloat = 0.88
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .scaleEffect(configuration.isPressed ? scale : 1.0)
-            .animation(.spring(response: 0.2, dampingFraction: 0.6), value: configuration.isPressed)
-    }
-}
-
-// MARK: – Queue Sheet
 
 struct QueueSheet: View {
     @EnvironmentObject var player: AudioPlayerManager
-
     var body: some View {
         NavigationView {
             Group {
                 if player.queue.isEmpty {
                     VStack(spacing: 12) {
-                        Image(systemName: "list.bullet")
-                            .font(.system(size: 36))
-                            .foregroundColor(Theme.textTertiary)
-                        Text("Очередь пуста")
-                            .font(.system(size: 16))
-                            .foregroundColor(Theme.textSecondary)
+                        Image(systemName: "list.bullet").font(.system(size: 36)).foregroundColor(Theme.textTertiary)
+                        Text("Очередь пуста").font(.system(size: 16)).foregroundColor(Theme.textSecondary)
                     }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .background(Theme.bg1)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity).background(Theme.bg1)
                 } else {
                     ScrollView {
                         LazyVStack(spacing: 0) {
                             ForEach(Array(player.queue.enumerated()), id: \.element.id) { idx, track in
-                                TrackRow(
-                                    track: track,
-                                    isPlaying: player.currentTrack?.id == track.id,
-                                    queue: player.queue,
-                                    index: idx
-                                )
+                                TrackRow(track: track, isPlaying: player.currentTrack?.id == track.id, queue: player.queue, index: idx)
                                 Divider().background(Theme.borderSubtle).padding(.leading, 78)
                             }
                         }

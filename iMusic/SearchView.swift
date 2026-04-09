@@ -266,7 +266,7 @@ struct SearchView: View {
         ScrollView {
             LazyVStack(spacing: 0) {
                 // Inline mini-player at top of list when playing (фото 2)
-                if let current = player.currentTrack {
+                if player.currentTrack != nil {
                     InlinePlayerCard()
                         .padding(.horizontal, 12)
                         .padding(.vertical, 8)

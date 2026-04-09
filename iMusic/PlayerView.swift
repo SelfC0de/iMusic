@@ -2,12 +2,12 @@ import SwiftUI
 
 // MARK: – Palette helper
 
-private struct ColorPalette {
+struct ColorPalette {
     let top: Color
     let bottom: Color
 }
 
-private let palettes: [ColorPalette] = [
+let palettes: [ColorPalette] = [
     .init(top: Color(red: 0.35, green: 0.08, blue: 0.55), bottom: Color(red: 0.08, green: 0.04, blue: 0.31)),
     .init(top: Color(red: 0.08, green: 0.20, blue: 0.47), bottom: Color(red: 0.31, green: 0.08, blue: 0.24)),
     .init(top: Color(red: 0.24, green: 0.04, blue: 0.39), bottom: Color(red: 0.04, green: 0.24, blue: 0.31)),

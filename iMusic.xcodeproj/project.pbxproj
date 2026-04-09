@@ -27,6 +27,8 @@
 		CA8391F7FBF15EF2A024D54B /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6ABAD276BE87914714CAD952 /* SettingsView.swift */; };
 		010808E1F62BE9C9280BB763 /* SharedComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C02676E9279400E346D231F /* SharedComponents.swift */; };
 		0B41DD55D2B0CF79176CAD14 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 49C36F8A172758EFBB8972F1 /* Assets.xcassets */; };
+		AC9047E805FE1BDE2E2DAF3E /* EqualizerManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D1B113A3228939BD6A4A278 /* EqualizerManager.swift */; };
+		967705A15975030559B12D31 /* EqualizerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1FF12ABF5F8C3BE0E9DF3698 /* EqualizerView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -52,6 +54,8 @@
 		266CB4CF9BDBB5214A5EE2B4 /* LibraryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryView.swift; sourceTree = "<group>"; };
 		6ABAD276BE87914714CAD952 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		6C02676E9279400E346D231F /* SharedComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedComponents.swift; sourceTree = "<group>"; };
+		3D1B113A3228939BD6A4A278 /* EqualizerManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EqualizerManager.swift; sourceTree = "<group>"; };
+		1FF12ABF5F8C3BE0E9DF3698 /* EqualizerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EqualizerView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -107,7 +111,7 @@
 				6C02676E9279400E346D231F /* SharedComponents.swift */,
 				49C36F8A172758EFBB8972F1 /* Assets.xcassets */,
 				7C70189C76C7DBDDF54E9F18 /* Info.plist */,
-							3D1B113A3228939BD6A4A278 /* EqualizerManager.swift */,
+				3D1B113A3228939BD6A4A278 /* EqualizerManager.swift */,
 				1FF12ABF5F8C3BE0E9DF3698 /* EqualizerView.swift */,
 );
 			path = iMusic;
@@ -203,9 +207,9 @@
 				212677A7E7071BE3F1CC73E9 /* LibraryView.swift in Sources */,
 				CA8391F7FBF15EF2A024D54B /* SettingsView.swift in Sources */,
 				010808E1F62BE9C9280BB763 /* SharedComponents.swift in Sources */,
-							AC9047E805FE1BDE2E2DAF3E /* EqualizerManager.swift in Sources */,
+				AC9047E805FE1BDE2E2DAF3E /* EqualizerManager.swift in Sources */,
 				967705A15975030559B12D31 /* EqualizerView.swift in Sources */,
-);
+			);;
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */

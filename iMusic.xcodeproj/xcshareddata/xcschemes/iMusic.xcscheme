@@ -15,7 +15,7 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "B2D3A9D66DE5309245453A4F"
+               BlueprintIdentifier = "C2E97C1287756EC08571CDDB"
                BuildableName = "iMusic.app"
                BlueprintName = "iMusic"
                ReferencedContainer = "container:iMusic.xcodeproj">
@@ -44,7 +44,7 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "B2D3A9D66DE5309245453A4F"
+            BlueprintIdentifier = "C2E97C1287756EC08571CDDB"
             BuildableName = "iMusic.app"
             BlueprintName = "iMusic"
             ReferencedContainer = "container:iMusic.xcodeproj">
@@ -61,7 +61,7 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "B2D3A9D66DE5309245453A4F"
+            BlueprintIdentifier = "C2E97C1287756EC08571CDDB"
             BuildableName = "iMusic.app"
             BlueprintName = "iMusic"
             ReferencedContainer = "container:iMusic.xcodeproj">

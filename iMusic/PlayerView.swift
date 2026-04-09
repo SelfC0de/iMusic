@@ -39,18 +39,20 @@ struct PlayerView: View {
                 if player.currentTrack == nil {
                     emptyPlayer
                 } else {
-                    // Available height = total - header - tabbar - miniplayer
-                    let available = geo.size.height - 56 - 12 - 28 - 180
-                    let artSize = min(available * 0.42, geo.size.width - 80)
+                    // Fixed sizes budget:
+                    // header=96, trackInfo=48, viz=28, progress=42, controls=70, secondary=38, volume=18, gaps=~80
+                    // remaining goes to art
+                    let fixedH: CGFloat = 96 + 48 + 28 + 42 + 70 + 38 + 18 + 80
+                    let artSize = min(geo.size.height - fixedH, geo.size.width - 64)
 
-                    // Album art
+                    // Album art + swipe
                     ZStack {
                         RoundedRectangle(cornerRadius: 20)
                             .fill(Theme.accentDim.opacity(0.18))
                             .frame(width: artSize, height: artSize)
-                            .blur(radius: 24)
+                            .blur(radius: 22)
                             .offset(y: 8)
-                            .scaleEffect(player.isPlaying ? 1.05 : 0.9)
+                            .scaleEffect(player.isPlaying ? 1.04 : 0.9)
                             .animation(.easeInOut(duration: 2.0).repeatForever(autoreverses: true), value: player.isPlaying)
 
                         CachedAsyncImage(url: player.currentTrack?.coverURL ?? "")
@@ -104,27 +106,24 @@ struct PlayerView: View {
                             }
                     )
 
-                    // Visualizer
-                    if player.isPlaying {
-                        WaveformVisualizer()
-                            .frame(height: 28)
-                            .padding(.horizontal, 24)
-                            .transition(.opacity.combined(with: .scale(scale: 0.8)))
-                    } else {
-                        Color.clear.frame(height: 28)
-                    }
+                    // Visualizer — fixed 28pt
+                    WaveformVisualizer()
+                        .frame(height: 28)
+                        .padding(.horizontal, 24)
+                        .opacity(player.isPlaying ? 1 : 0.3)
+                        .animation(.easeInOut(duration: 0.3), value: player.isPlaying)
 
-                    Spacer(minLength: 8)
+                    Spacer(minLength: 0).frame(height: 10)
 
                     // Track info
                     HStack(alignment: .center, spacing: 12) {
                         VStack(alignment: .leading, spacing: 3) {
                             Text(player.currentTrack?.title ?? "")
-                                .font(.system(size: 19, weight: .bold))
+                                .font(.system(size: 18, weight: .bold))
                                 .foregroundColor(Theme.textPrimary)
                                 .lineLimit(1)
                             Text(player.currentTrack?.artist ?? "")
-                                .font(.system(size: 14))
+                                .font(.system(size: 13))
                                 .foregroundColor(Theme.textSecondary)
                                 .lineLimit(1)
                         }
@@ -146,31 +145,30 @@ struct PlayerView: View {
                     }
                     .padding(.horizontal, 24)
 
-                    Spacer(minLength: 14)
+                    Spacer(minLength: 0).frame(height: 10)
 
                     // Progress
                     progressSection
                         .padding(.horizontal, 24)
 
-                    Spacer(minLength: 18)
+                    Spacer(minLength: 0).frame(height: 14)
 
                     // Main controls
                     mainControls
                         .padding(.horizontal, 24)
 
-                    Spacer(minLength: 14)
+                    Spacer(minLength: 0).frame(height: 10)
 
                     // Secondary controls
                     secondaryControls
                         .padding(.horizontal, 24)
 
-                    Spacer(minLength: 14)
+                    Spacer(minLength: 0).frame(height: 10)
 
                     // Volume
                     volumeSection
                         .padding(.horizontal, 24)
-
-                    Spacer(minLength: 8)
+                        .padding(.bottom, 12)
                 }
             }
         }

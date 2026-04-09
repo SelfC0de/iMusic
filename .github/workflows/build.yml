@@ -13,11 +13,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Select Xcode 16
-        run: sudo xcode-select -s /Applications/Xcode_16.app/Contents/Developer
-
-      - name: Show Xcode version
-        run: xcodebuild -version
+      - name: Select Xcode
+        run: |
+          XCODE=$(ls /Applications | grep "Xcode" | sort -r | head -1)
+          echo "Using: $XCODE"
+          sudo xcode-select -s "/Applications/$XCODE/Contents/Developer"
+          xcodebuild -version
 
       - name: Build
         run: |
@@ -33,16 +34,16 @@ jobs:
             ONLY_ACTIVE_ARCH=NO \
             build
 
-      - name: Package .app into zip
+      - name: Package IPA
         run: |
           APP_PATH=$(find build/DerivedData -name "iMusic.app" -type d | head -1)
-          echo "Found app at: $APP_PATH"
+          echo "App: $APP_PATH"
           mkdir -p Payload
           cp -r "$APP_PATH" Payload/iMusic.app
           zip -r iMusic.ipa Payload
           rm -rf Payload
 
-      - name: Create Pre-Release
+      - name: Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: build-${{ github.run_number }}

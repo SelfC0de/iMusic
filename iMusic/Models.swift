@@ -19,6 +19,7 @@ enum MusicSource: String, Codable, CaseIterable {
     case source1 = "source1"
     case source2 = "source2"
     case source3 = "source3"
+    case source4 = "source4"
 }
 
 enum PlayerState {

@@ -205,3 +205,88 @@ struct InlinePlayerCard: View {
         .animation(.spring(response: 0.4, dampingFraction: 0.8), value: player.currentTrack?.id)
     }
 }
+
+// MARK: – Search Loading Animation
+
+struct SearchLoadingView: View {
+    @State private var phase: Double = 0
+    @State private var textOpacity: Double = 0
+    @State private var dotCount: Int = 0
+    @State private var barHeights: [CGFloat] = Array(repeating: 4, count: 5)
+
+    let texts = ["Ищу треки", "Поиск актуального", "Готовлю список", "Почти готово"]
+    @State private var textIndex = 0
+
+    let barTimer = Timer.publish(every: 0.12, on: .main, in: .common).autoconnect()
+    let textTimer = Timer.publish(every: 1.8, on: .main, in: .common).autoconnect()
+
+    var body: some View {
+        VStack(spacing: 28) {
+            // Animated waveform bars
+            HStack(spacing: 5) {
+                ForEach(0..<5, id: \.self) { i in
+                    RoundedRectangle(cornerRadius: 3)
+                        .fill(
+                            LinearGradient(
+                                colors: [Theme.accentDim, Theme.accentBright],
+                                startPoint: .bottom,
+                                endPoint: .top
+                            )
+                        )
+                        .frame(width: 6, height: barHeights[i])
+                        .animation(
+                            .spring(response: 0.25, dampingFraction: 0.55)
+                                .delay(Double(i) * 0.04),
+                            value: barHeights[i]
+                        )
+                }
+            }
+            .frame(height: 44)
+            .onReceive(barTimer) { _ in
+                phase += 0.35
+                for i in 0..<5 {
+                    let wave = sin(phase + Double(i) * 0.9) * 0.5 + 0.5
+                    barHeights[i] = 6 + CGFloat(wave) * 38
+                }
+            }
+
+            // Animated text with dots
+            VStack(spacing: 6) {
+                HStack(spacing: 2) {
+                    Text(texts[textIndex])
+                        .font(.system(size: 15, weight: .semibold))
+                        .foregroundColor(Theme.textPrimary)
+                        .transition(.asymmetric(
+                            insertion: .move(edge: .bottom).combined(with: .opacity),
+                            removal: .move(edge: .top).combined(with: .opacity)
+                        ))
+                        .id(textIndex)
+
+                    HStack(spacing: 2) {
+                        ForEach(0..<3, id: \.self) { d in
+                            Circle()
+                                .fill(Theme.accent)
+                                .frame(width: 4, height: 4)
+                                .opacity(dotCount > d ? 1 : 0.2)
+                                .animation(
+                                    .easeInOut(duration: 0.25).delay(Double(d) * 0.12),
+                                    value: dotCount
+                                )
+                        }
+                    }
+                    .padding(.leading, 2)
+                }
+
+            }
+        }
+        .onAppear {
+            withAnimation(.easeIn(duration: 0.3)) { textOpacity = 1 }
+        }
+        .onReceive(textTimer) { _ in
+            withAnimation(.spring(response: 0.4, dampingFraction: 0.75)) {
+                textIndex = (textIndex + 1) % texts.count
+                dotCount = (dotCount % 3) + 1
+            }
+        }
+    }
+}

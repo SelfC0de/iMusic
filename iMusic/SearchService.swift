@@ -9,6 +9,7 @@ final class SearchService {
     private let ep1 = "https://rus.hitmotop.com"
     private let ep2 = "https://muz.zvukofon.com"
     private let ep3 = "https://ruo.morsmusic.org"
+    private let ep4 = "https://box.hitplayer.ru"
     private let pageSize = 48
 
     private let ua = "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1"
@@ -18,16 +19,21 @@ final class SearchService {
         async let r1 = searchSource1(query: query, page: page)
         async let r2 = searchSource2(query: query, page: page)
         async let r3 = searchSource3(query: query, page: page)
+        async let r4 = searchSource4(query: query, page: page)
 
-        let (t1, t2, t3) = await (r1, r2, r3)
+        let (t1, t2, t3, t4) = await (r1, r2, r3, r4)
 
         var merged: [Track] = []
         var seen = Set<String>()
-        let maxCount = max(t1.count, max(t2.count, t3.count))
+        let all = [t1, t2, t3, t4]
+        let maxCount = all.map(\.count).max() ?? 0
         for i in 0..<maxCount {
-            for t in [i < t1.count ? t1[i] : nil, i < t2.count ? t2[i] : nil, i < t3.count ? t3[i] : nil].compactMap({ $0 }) {
-                let key = dedupeKey(t)
-                if !seen.contains(key) { seen.insert(key); merged.append(t) }
+            for src in all {
+                if i < src.count {
+                    let t = src[i]
+                    let key = dedupeKey(t)
+                    if !seen.contains(key) { seen.insert(key); merged.append(t) }
+                }
             }
         }
         return merged
@@ -60,7 +66,16 @@ final class SearchService {
         return parseSource3(html)
     }
 
-    // MARK: – HTTP
+    func searchSource4(query: String, page: Int) async -> [Track] {
+        // page 0 → no p param, page N → &p=N+1
+        let urlStr = page == 0
+            ? "\(ep4)/?s=\(query.urlEncoded)"
+            : "\(ep4)/?s=\(query.urlEncoded)&p=\(page + 1)"
+        guard let html = await fetchHTML(urlStr) else { return [] }
+        return parseSource4(html)
+    }
+
+        // MARK: – HTTP
 
 
     private func fetchHTML(_ urlString: String) async -> String? {
@@ -295,7 +310,107 @@ final class SearchService {
         )
     }
 
-    // MARK: – Dedup key: normalize title+artist
+    // MARK: – Parser Source4 (hitplayer)
+
+    private func parseSource4(_ html: String) -> [Track] {
+        var tracks: [Track] = []
+        // Find class="result" container
+        guard let resultStart = html.range(of: "class=\"result\"") else { return [] }
+        let searchFrom = resultStart.lowerBound
+        var pos = searchFrom
+        // Each track is a <div class="i ___adv-rbtify-element"...>
+        let pattern = #"<div[^>]*class="i ___adv-rbtify-element"[^>]*>([\s\S]*?)</div>\s*</div>"#
+        while let range = html.range(of: pattern, options: .regularExpression, range: pos..<html.endIndex) {
+            let block = String(html[range])
+            if let t = parseItem4(block) { tracks.append(t) }
+            pos = range.upperBound
+            if tracks.count >= 40 { break }
+        }
+        return tracks
+    }
+
+    private func parseItem4(_ block: String) -> Track? {
+        var title = ""
+        var artist = ""
+        var streamURL = ""
+        var dlURL = ""
+        var duration = "0:00"
+
+        // No stream from data-audio (m3u8) — use download mp3 only
+
+        // Download URL from .dwnld href — must end with .mp3 (strip query params)
+        if let v = block.firstCapture(pattern: #"class="dwnld[^"]*"[^>]*href="([^"]+\.mp3(?:[^"]*)?)"#) {
+            // Remove query string after .mp3
+            let base = v.components(separatedBy: ".mp3").first.map { $0 + ".mp3" } ?? v
+            // URL decode to readable, then clean site suffix like _(www.hotplayer.ru)
+            let decoded = base.removingPercentEncoding ?? base
+            let cleaned = decoded.replacingOccurrences(
+                of: #"[ _]\(www\.hotplayer\.ru\)"#,
+                with: "",
+                options: .regularExpression
+            )
+            // Re-encode for actual URL usage
+            if let encoded = cleaned.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed),
+               let baseURL = base.components(separatedBy: "/downloadm").first {
+                // keep original encoded URL but cleaned
+                dlURL = base.components(separatedBy: "?").first ?? base
+            } else {
+                dlURL = base.components(separatedBy: "?").first ?? base
+            }
+        }
+
+        // title="Слушать Artist - Title" → parse after "Слушать "
+        if let fullTitle = block.firstCapture(pattern: #"title="Слушать ([^"]+)""#) {
+            // Split on " — " (em dash) or " - " to get artist - title
+            let parts: [String]
+            if fullTitle.contains(" — ") {
+                parts = fullTitle.components(separatedBy: " — ")
+            } else {
+                parts = fullTitle.components(separatedBy: " - ")
+            }
+            if parts.count >= 2 {
+                artist = parts[0].trimmed
+                title  = parts[1...].joined(separator: " - ").trimmed
+            } else {
+                title = fullTitle.trimmed
+            }
+        }
+
+        // <span class="tt">Title</span>
+        if let v = block.firstCapture(pattern: #"<span class="tt">([^<]+)</span>"#), !v.isBlank {
+            title = v.trimmed
+        }
+
+        // <span class="a">artists</span> — collect itemprop="byArtist" content values
+        if let artistBlock = block.firstCapture(pattern: #"<span class="a">([\s\S]*?)</span>"#) {
+            if let re = try? NSRegularExpression(pattern: #"content="([^"]+)""#) {
+                let ms = re.matches(in: artistBlock, range: NSRange(artistBlock.startIndex..., in: artistBlock))
+                let names = ms.compactMap { m -> String? in
+                    guard let r = Range(m.range(at: 1), in: artistBlock) else { return nil }
+                    return String(artistBlock[r]).trimmed
+                }
+                if !names.isEmpty { artist = names.joined(separator: ", ") }
+            }
+        }
+
+        // Duration
+        if let v = block.firstCapture(pattern: #"<span class="dur">([\d:]+)</span>"#) { duration = v }
+
+        guard !dlURL.isEmpty else { return nil }
+        let id = "s4_\(dlURL.stableHash)"
+        return Track(
+            id: id,
+            title: title.emptyFallback,
+            artist: artist.emptyFallback,
+            duration: duration,
+            coverURL: "",
+            streamURL: dlURL,
+            downloadURL: dlURL,
+            source: .source4
+        )
+    }
+
+        // MARK: – Dedup key: normalize title+artist
 
 
     private func dedupeKey(_ t: Track) -> String {

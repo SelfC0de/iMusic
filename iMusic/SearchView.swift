@@ -16,13 +16,15 @@ final class SearchViewModel: ObservableObject {
     private var hasMoreS3 = true
     private var hasMoreS4 = true
     private var hasMoreS5 = true
-    var hasMore: Bool { hasMoreS1 || hasMoreS2 || hasMoreS3 || hasMoreS4 || hasMoreS5 }
+    private var hasMoreS6 = true
+    var hasMore: Bool { hasMoreS1 || hasMoreS2 || hasMoreS3 || hasMoreS4 || hasMoreS5 || hasMoreS6 }
 
     private var pageS1 = 0
     private var pageS2 = 0
     private var pageS3 = 0
     private var pageS4 = 0
     private var pageS5 = 0
+    private var pageS6 = 0
     private var lastQuery = ""
     private var searchTask: Task<Void, Never>?
 
@@ -30,8 +32,8 @@ final class SearchViewModel: ObservableObject {
         let q = query.trimmed
         guard !q.isEmpty else { return }
         searchTask?.cancel()
-        pageS1 = 0; pageS2 = 0; pageS3 = 0; pageS4 = 0; pageS5 = 0
-        hasMoreS1 = true; hasMoreS2 = true; hasMoreS3 = true; hasMoreS4 = true; hasMoreS5 = true
+        pageS1 = 0; pageS2 = 0; pageS3 = 0; pageS4 = 0; pageS5 = 0; pageS6 = 0
+        hasMoreS1 = true; hasMoreS2 = true; hasMoreS3 = true; hasMoreS4 = true; hasMoreS5 = true; hasMoreS6 = true
         lastQuery = q
         tracks = []
         isLoading = true
@@ -48,11 +50,13 @@ final class SearchViewModel: ObservableObject {
             let s3c = results.filter { $0.source == .source3 }.count
             let s4c = results.filter { $0.source == .source4 }.count
             let s5c = results.filter { $0.source == .source5 }.count
+            let s6c = results.filter { $0.source == .source6 }.count
             hasMoreS1 = s1c >= 48
             hasMoreS2 = s2c >= 40
             hasMoreS3 = s3c >= 20
             hasMoreS4 = s4c >= 40
             hasMoreS5 = s5c >= 40
+            hasMoreS6 = s6c >= 40
             isLoading = false
         }
     }
@@ -67,11 +71,13 @@ final class SearchViewModel: ObservableObject {
         let doS3 = hasMoreS3
         let doS4 = hasMoreS4
         let doS5 = hasMoreS5
+        let doS6 = hasMoreS6
         let nextS1 = pageS1 + 1
         let nextS2 = pageS2 + 1
         let nextS3 = pageS3 + 1
         let nextS4 = pageS4 + 1
         let nextS5 = pageS5 + 1
+        let nextS6 = pageS6 + 1
 
         Task {
             async let r1: [Track] = doS1 ? SearchService.shared.searchSource1(query: q, page: nextS1) : []
@@ -79,12 +85,13 @@ final class SearchViewModel: ObservableObject {
             async let r3: [Track] = doS3 ? SearchService.shared.searchSource3(query: q, page: nextS3) : []
             async let r4: [Track] = doS4 ? SearchService.shared.searchSource4(query: q, page: nextS4) : []
             async let r5: [Track] = doS5 ? SearchService.shared.searchSource5(query: q, page: nextS5) : []
-            let (t1, t2, t3, t4, t5) = await (r1, r2, r3, r4, r5)
+            async let r6: [Track] = doS6 ? SearchService.shared.searchSource6(query: q, page: nextS6) : []
+            let (t1, t2, t3, t4, t5, t6) = await (r1, r2, r3, r4, r5, r6)
 
             // Deduplicate against existing
             var existingKeys = Set(tracks.map { dedupeKey($0) })
             var merged: [Track] = []
-            for t in t1 + t2 + t3 + t4 + t5 {
+            for t in t1 + t2 + t3 + t4 + t5 + t6 {
                 let k = dedupeKey(t)
                 if !existingKeys.contains(k) { existingKeys.insert(k); merged.append(t) }
             }
@@ -95,6 +102,7 @@ final class SearchViewModel: ObservableObject {
             if doS3 { pageS3 = nextS3; hasMoreS3 = t3.count >= 20 }
             if doS4 { pageS4 = nextS4; hasMoreS4 = t4.count >= 40 }
             if doS5 { pageS5 = nextS5; hasMoreS5 = t5.count >= 40 }
+            if doS6 { pageS6 = nextS6; hasMoreS6 = t6.count >= 40 }
             isLoadingMore = false
         }
     }
@@ -103,8 +111,8 @@ final class SearchViewModel: ObservableObject {
         searchTask?.cancel()
         query = ""; tracks = []; error = nil
         isLoading = false; isLoadingMore = false
-        hasMoreS1 = true; hasMoreS2 = true; hasMoreS3 = true; hasMoreS4 = true; hasMoreS5 = true
-        pageS1 = 0; pageS2 = 0; pageS3 = 0; pageS4 = 0; pageS5 = 0; lastQuery = ""
+        hasMoreS1 = true; hasMoreS2 = true; hasMoreS3 = true; hasMoreS4 = true; hasMoreS5 = true; hasMoreS6 = true
+        pageS1 = 0; pageS2 = 0; pageS3 = 0; pageS4 = 0; pageS5 = 0; pageS6 = 0; lastQuery = ""
     }
 
     private func dedupeKey(_ t: Track) -> String {

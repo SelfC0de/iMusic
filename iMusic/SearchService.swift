@@ -11,6 +11,7 @@ final class SearchService {
     private let ep3 = "https://ruo.morsmusic.org"
     private let ep4 = "https://box.hitplayer.ru"
     private let ep5 = "https://ru.monfons.com"
+    private let ep6 = "https://ru.drivemusic.me"
     private let pageSize = 48
 
     private let ua = "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1"
@@ -22,12 +23,13 @@ final class SearchService {
         async let r3 = searchSource3(query: query, page: page)
         async let r4 = searchSource4(query: query, page: page)
         async let r5 = searchSource5(query: query, page: page)
+        async let r6 = searchSource6(query: query, page: page)
 
-        let (t1, t2, t3, t4, t5) = await (r1, r2, r3, r4, r5)
+        let (t1, t2, t3, t4, t5, t6) = await (r1, r2, r3, r4, r5, r6)
 
         var merged: [Track] = []
         var seen = Set<String>()
-        let all = [t1, t2, t3, t4, t5]
+        let all = [t1, t2, t3, t4, t5, t6]
         let maxCount = all.map(\.count).max() ?? 0
         for i in 0..<maxCount {
             for src in all {
@@ -81,6 +83,12 @@ final class SearchService {
         let urlStr = "\(ep5)/search/\(query.urlEncoded)"
         guard let html = await fetchHTML(urlStr) else { return [] }
         return parseSource5(html)
+    }
+
+        func searchSource6(query: String, page: Int) async -> [Track] {
+        let urlStr = "\(ep6)/?do=search&subaction=search&story=\(query.urlEncoded)"
+        guard let html = await fetchHTML(urlStr) else { return [] }
+        return parseSource6(html)
     }
 
         // MARK: – HTTP
@@ -478,6 +486,75 @@ final class SearchService {
             streamURL: dlURL,
             downloadURL: dlURL,
             source: .source5
+        )
+    }
+
+        // MARK: – Parser Source6 (drivemusic)
+
+    private func parseSource6(_ html: String) -> [Track] {
+        var tracks: [Track] = []
+        guard html.contains("genre-music inline_player_playlist_main") else { return [] }
+        var pos = html.startIndex
+        let pattern = #"<div[^>]*class="music-popular-wrapper[^"]*"[^>]*>([\s\S]*?)<div class="popular-progress">"#
+        while let range = html.range(of: pattern, options: .regularExpression, range: pos..<html.endIndex) {
+            let block = String(html[range])
+            if let t = parseItem6(block) { tracks.append(t) }
+            pos = range.upperBound
+            if tracks.count >= 40 { break }
+        }
+        return tracks
+    }
+
+    private func parseItem6(_ block: String) -> Track? {
+        var title = ""
+        var artist = ""
+        var streamURL = ""
+        var duration = "0:00"
+
+        // Stream URL from data-url on button
+        if let v = block.firstCapture(pattern: #"data-url="(https://ru-cdn[^"]+\.mp3)""#) {
+            streamURL = v
+        }
+        guard !streamURL.isEmpty else { return nil }
+
+        // Title from popular-play-name anchor
+        if let v = block.firstCapture(pattern: #"class="popular-play-author"[^>]*>([^<]+)</a>"#) {
+            title = v.trimmed
+        }
+
+        // Artists — collect all <a> inside popular-play-composition, join with ", "
+        if let artistBlock = block.firstCapture(pattern: #"class="popular-play-composition">([\s\S]*?)</div>"#) {
+            // strip HTML tags and split on & separators
+            var cleaned = artistBlock
+            // remove all tags
+            if let re = try? NSRegularExpression(pattern: "<[^>]+>") {
+                cleaned = re.stringByReplacingMatches(in: cleaned,
+                    range: NSRange(cleaned.startIndex..., in: cleaned), withTemplate: "")
+            }
+            // decode &amp; and normalize separators
+            cleaned = cleaned.htmlEntityDecoded
+            // split on &, comma or newline
+            let parts = cleaned.components(separatedBy: CharacterSet(charactersIn: "&,\n"))
+                .map { $0.trimmed }
+                .filter { !$0.isEmpty }
+            if !parts.isEmpty { artist = parts.joined(separator: ", ") }
+        }
+
+        // Duration from popular-download-number
+        if let v = block.firstCapture(pattern: #"class="popular-download-number">([\d:]+)</div>"#) {
+            duration = v
+        }
+
+        let id = "s6_\(streamURL.stableHash)"
+        return Track(
+            id: id,
+            title: title.emptyFallback,
+            artist: artist.emptyFallback,
+            duration: duration,
+            coverURL: "",
+            streamURL: streamURL,
+            downloadURL: streamURL,
+            source: .source6
         )
     }
 

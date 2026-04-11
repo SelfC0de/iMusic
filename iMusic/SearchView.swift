@@ -80,20 +80,28 @@ final class SearchViewModel: ObservableObject {
         let nextS6 = pageS6 + 1
 
         Task {
-            // Split into two groups to avoid type-checker timeout
-            async let r1: [Track] = doS1 ? SearchService.shared.searchSource1(query: q, page: nextS1) : []
-            async let r2: [Track] = doS2 ? SearchService.shared.searchSource2(query: q, page: nextS2) : []
-            async let r3: [Track] = doS3 ? SearchService.shared.searchSource3(query: q, page: nextS3) : []
-            let (t1, t2, t3) = await (r1, r2, r3)
+            let (t1, t2, t3): ([Track],[Track],[Track])
+            let (t4, t5, t6): ([Track],[Track],[Track])
+            do {
+                async let r1: [Track] = doS1 ? SearchService.shared.searchSource1(query: q, page: nextS1) : []
+                async let r2: [Track] = doS2 ? SearchService.shared.searchSource2(query: q, page: nextS2) : []
+                async let r3: [Track] = doS3 ? SearchService.shared.searchSource3(query: q, page: nextS3) : []
+                let g1 = await (r1, r2, r3)
+                t1 = g1.0; t2 = g1.1; t3 = g1.2
+            }
+            do {
+                async let r4: [Track] = doS4 ? SearchService.shared.searchSource4(query: q, page: nextS4) : []
+                async let r5: [Track] = doS5 ? SearchService.shared.searchSource5(query: q, page: nextS5) : []
+                async let r6: [Track] = doS6 ? SearchService.shared.searchSource6(query: q, page: nextS6) : []
+                let g2 = await (r4, r5, r6)
+                t4 = g2.0; t5 = g2.1; t6 = g2.2
+            }
 
-            async let r4: [Track] = doS4 ? SearchService.shared.searchSource4(query: q, page: nextS4) : []
-            async let r5: [Track] = doS5 ? SearchService.shared.searchSource5(query: q, page: nextS5) : []
-            async let r6: [Track] = doS6 ? SearchService.shared.searchSource6(query: q, page: nextS6) : []
-            let (t4, t5, t6) = await (r4, r5, r6)
-
-            var existingKeys = Set(tracks.map { dedupeKey($0) })
+            let allNew: [Track] = t1 + t2 + t3 + t4 + t5 + t6
+            var existingKeys = Set<String>()
+            for t in tracks { existingKeys.insert(dedupeKey(t)) }
             var merged: [Track] = []
-            for t in t1 + t2 + t3 + t4 + t5 + t6 {
+            for t in allNew {
                 let k = dedupeKey(t)
                 if !existingKeys.contains(k) { existingKeys.insert(k); merged.append(t) }
             }

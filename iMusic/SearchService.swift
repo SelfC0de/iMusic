@@ -241,7 +241,6 @@ final class SearchService {
 
     private func parseSource3(_ html: String) -> [Track] {
         var tracks: [Track] = []
-        var pos = html.startIndex
         // Find wrapper-tracklist container first
         guard let listStart = html.range(of: "wrapper-tracklist muslist") else { return [] }
         var searchFrom = listStart.lowerBound
@@ -348,7 +347,6 @@ final class SearchService {
     private func parseItem4(_ block: String) -> Track? {
         var title = ""
         var artist = ""
-        var streamURL = ""
         var dlURL = ""
         var duration = "0:00"
 
@@ -356,23 +354,8 @@ final class SearchService {
 
         // Download URL from .dwnld href — must end with .mp3 (strip query params)
         if let v = block.firstCapture(pattern: #"class="dwnld[^"]*"[^>]*href="([^"]+\.mp3(?:[^"]*)?)"#) {
-            // Remove query string after .mp3
             let base = v.components(separatedBy: ".mp3").first.map { $0 + ".mp3" } ?? v
-            // URL decode to readable, then clean site suffix like _(www.hotplayer.ru)
-            let decoded = base.removingPercentEncoding ?? base
-            let cleaned = decoded.replacingOccurrences(
-                of: #"[ _]\(www\.hotplayer\.ru\)"#,
-                with: "",
-                options: .regularExpression
-            )
-            // Re-encode for actual URL usage
-            if let encoded = cleaned.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed),
-               let baseURL = base.components(separatedBy: "/downloadm").first {
-                // keep original encoded URL but cleaned
-                dlURL = base.components(separatedBy: "?").first ?? base
-            } else {
-                dlURL = base.components(separatedBy: "?").first ?? base
-            }
+            dlURL = base.components(separatedBy: "?").first ?? base
         }
 
         // title="Слушать Artist - Title" → parse after "Слушать "
